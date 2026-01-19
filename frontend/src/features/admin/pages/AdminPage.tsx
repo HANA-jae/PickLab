@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import * as XLSX from 'xlsx';
 
 type TabType = 'lunch' | 'dinner' | 'recipe';
 
@@ -21,6 +22,8 @@ export default function AdminPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingFood, setEditingFood] = useState<FoodItem | null>(null);
   const [filterTab, setFilterTab] = useState<TabType | 'all'>('all');
+  const [uploadTab, setUploadTab] = useState<TabType>('lunch');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<Partial<FoodItem>>({
     name: '',
@@ -130,6 +133,61 @@ export default function AdminPage() {
     ? foods 
     : foods.filter(food => food.tab === filterTab);
 
+  // 엑셀 파일 업로드 처리
+  const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+
+        // 첫 번째 행은 헤더로 간주하고 건너뛰기
+        const dataRows = jsonData.slice(1);
+        
+        const newFoods: FoodItem[] = dataRows
+          .filter(row => row[0]) // 메뉴명이 있는 행만 처리
+          .map((row) => ({
+            id: Date.now() + Math.random(), // 고유 ID 생성
+            name: String(row[0] || '').trim(), // 1열: 메뉴명
+            category: String(row[1] || '').trim(), // 2열: 카테고리
+            subCategory: String(row[2] || '').trim(), // 3열: 세부 카테고리
+            taste: String(row[3] || '').trim(), // 4열: 맛
+            priceRange: String(row[4] || '').trim(), // 5열: 가격대
+            feature: String(row[5] || '').trim(), // 6열: 특징
+            emoji: '🍽️', // 기본 이모지
+            rating: '⭐ 4.0', // 기본 평점
+            description: '', // 기본 설명
+            tab: uploadTab, // 선택한 탭
+          }));
+
+        if (newFoods.length === 0) {
+          alert('업로드할 데이터가 없습니다. 엑셀 파일을 확인해주세요.');
+          return;
+        }
+
+        // 기존 음식에 새 음식 추가
+        saveFoods([...foods, ...newFoods]);
+        alert(`${newFoods.length}개의 음식이 추가되었습니다!`);
+        
+        // 파일 입력 초기화
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } catch (error) {
+        console.error('Excel upload error:', error);
+        alert('엑셀 파일을 읽는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-800 to-gray-950 py-12 px-4">
       <div className="max-w-7xl mx-auto">
@@ -142,7 +200,7 @@ export default function AdminPage() {
         </div>
 
         {/* 액션 버튼 */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <button
             onClick={() => {
               resetForm();
@@ -168,6 +226,61 @@ export default function AdminPage() {
                 {tab === 'all' ? '전체' : tab === 'lunch' ? '점심' : tab === 'dinner' ? '저녁' : '요리'}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* 엑셀 업로드 섹션 */}
+        <div className="mb-8 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-teal-500/10 backdrop-blur-md rounded-2xl p-6 border border-green-500/30 shadow-xl">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                📊 엑셀 파일로 일괄 업로드
+              </h3>
+              <p className="text-sm text-gray-300 mb-2">
+                엑셀 파일의 6개 컬럼을 사용합니다:
+              </p>
+              <div className="text-xs text-gray-400 space-y-1">
+                <p>• <span className="font-semibold text-green-300">1열</span>: 메뉴명</p>
+                <p>• <span className="font-semibold text-green-300">2열</span>: 카테고리 (한식, 양식 등)</p>
+                <p>• <span className="font-semibold text-green-300">3열</span>: 세부 카테고리 (국/찌개, 밥 등)</p>
+                <p>• <span className="font-semibold text-green-300">4열</span>: 맛 (순한맛, 매운맛 등)</p>
+                <p>• <span className="font-semibold text-green-300">5열</span>: 가격대 (저가, 중가, 고가)</p>
+                <p>• <span className="font-semibold text-green-300">6열</span>: 특징 (빠르게, 건강식 등)</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 w-full md:w-auto">
+              {/* 탭 선택 */}
+              <div className="flex gap-2">
+                {['lunch', 'dinner', 'recipe'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setUploadTab(tab as TabType)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${
+                      uploadTab === tab
+                        ? 'bg-green-500 text-white shadow-lg'
+                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                    }`}
+                  >
+                    {tab === 'lunch' ? '점심' : tab === 'dinner' ? '저녁' : '요리'}
+                  </button>
+                ))}
+              </div>
+
+              {/* 파일 업로드 버튼 */}
+              <label className="cursor-pointer">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx, .xls"
+                  onChange={handleExcelUpload}
+                  className="hidden"
+                />
+                <div className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg text-center">
+                  📁 엑셀 파일 선택
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 
