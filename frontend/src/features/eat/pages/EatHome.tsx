@@ -215,14 +215,14 @@ export default function EatHome() {
   const step2Options = getSubOptions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-800 to-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* 헤더 */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 bg-clip-text text-transparent mb-4">
             🍔 음식 추천
           </h1>
-          <p className="text-xl text-gray-400">
+          <p className="text-xl text-gray-300">
             오늘은 뭐 먹을까요? 편하게 추천받아보세요!
           </p>
         </div>
@@ -233,10 +233,10 @@ export default function EatHome() {
             <button
               key={tab}
               onClick={() => handleTabChange(tab)}
-              className={`px-6 py-3 rounded-lg font-semibold text-lg transition-all ${
+              className={`px-6 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${
                 activeTab === tab
-                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg scale-105'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xl shadow-orange-500/50 scale-105 ring-2 ring-orange-400/50'
+                  : 'bg-gray-800/50 backdrop-blur-sm text-gray-300 hover:bg-gray-700/50 hover:text-white border border-gray-700 hover:border-gray-600'
               }`}
             >
               {getTabLabel(tab)}
@@ -246,7 +246,7 @@ export default function EatHome() {
 
         {/* 선택지 섹션 */}
         <div className="mb-12">
-          <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-2xl p-8 border border-gray-700 space-y-8">
+          <div className="bg-gradient-to-br from-gray-800/90 via-gray-800/80 to-gray-700/90 backdrop-blur-md rounded-2xl p-8 border border-gray-600/50 shadow-2xl space-y-8">
             {/* Step 1 */}
             <div>
               <h3 className="text-xl font-bold text-white mb-4">1️⃣ 종류</h3>
@@ -261,10 +261,10 @@ export default function EatHome() {
                       }));
                       setErrorMessage('');
                     }}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
                       currentRecommendation.step1 === opt
-                        ? 'bg-blue-500 text-white shadow-lg'
-                        : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400/50 scale-105'
+                        : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
                     }`}
                   >
                     {opt}
@@ -290,10 +290,10 @@ export default function EatHome() {
                           }));
                           setErrorMessage('');
                         }}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                        className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
                           currentRecommendation.step2 === opt
-                            ? 'bg-green-500 text-white shadow-lg'
-                            : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/50 ring-2 ring-green-400/50 scale-105'
+                            : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
                         }`}
                       >
                         {opt}
@@ -350,10 +350,10 @@ export default function EatHome() {
                         }));
                         setErrorMessage('');
                       }}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
                         currentRecommendation.step3 === opt
-                          ? 'bg-yellow-500 text-white shadow-lg'
-                          : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg shadow-yellow-500/50 ring-2 ring-yellow-400/50 scale-105'
+                          : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
                       }`}
                     >
                       {opt}
@@ -378,10 +378,10 @@ export default function EatHome() {
                         }));
                         setErrorMessage('');
                       }}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
                         currentRecommendation.step4 === opt
-                          ? 'bg-purple-500 text-white shadow-lg'
-                          : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white shadow-lg shadow-purple-500/50 ring-2 ring-purple-400/50 scale-105'
+                          : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
                       }`}
                     >
                       {opt}
@@ -406,10 +406,10 @@ export default function EatHome() {
                         }));
                         setErrorMessage('');
                       }}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
                         currentRecommendation.step5 === opt
-                          ? 'bg-pink-500 text-white shadow-lg'
-                          : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                          ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/50 ring-2 ring-pink-400/50 scale-105'
+                          : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
                       }`}
                     >
                       {opt}
@@ -418,7 +418,7 @@ export default function EatHome() {
                 </div>
 
                 {/* 선택 요약 */}
-                <div className="mb-6 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/50 rounded-lg">
+                <div className="mb-6 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/40 rounded-xl backdrop-blur-sm shadow-lg">
                   <p className="text-white text-sm">
                     <span className="font-semibold">선택 요약:</span> {currentRecommendation.step1} → {currentRecommendation.step2} → {currentRecommendation.step3} → {currentRecommendation.step4} → {currentRecommendation.step5}
                   </p>
@@ -427,7 +427,7 @@ export default function EatHome() {
                 {/* 추천받기 버튼 */}
                 <button
                   onClick={handleGetRecommendation}
-                  className="w-full px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg font-bold text-lg transition-all hover:scale-105 shadow-lg"
+                  className="w-full px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-xl shadow-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/50"
                 >
                   추천받기 🎉
                 </button>
@@ -448,14 +448,14 @@ export default function EatHome() {
           {/* 추천 음식 카드 그리드 */}
           {currentRecommendation.recommendedFoods.length > 0 && (
             <div>
-              <h2 className="text-3xl font-bold text-white mb-8 text-center">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 bg-clip-text text-transparent mb-8 text-center">
                 당신을 위한 추천 음식 🎯
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {currentRecommendation.recommendedFoods.map((food, index) => (
                 <div
                   key={`${food.id}-${index}`}
-                  className="group rounded-2xl bg-gradient-to-br from-gray-800 to-gray-700 p-8 border border-orange-500/50 transition-all hover:shadow-2xl hover:shadow-orange-500/30 hover:border-orange-500 cursor-pointer transform hover:scale-105"
+                  className="group relative rounded-2xl bg-gradient-to-br from-gray-800/90 via-gray-800/80 to-gray-700/90 backdrop-blur-md p-8 border border-orange-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/50 hover:border-orange-400 cursor-pointer transform hover:scale-105 hover:ring-2 hover:ring-orange-400/50"
                 >
                   {/* 순위 배지 */}
                   <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
@@ -463,12 +463,12 @@ export default function EatHome() {
                   </div>
 
                   {/* 아이콘 */}
-                  <div className="text-6xl mb-4 group-hover:scale-110 transition-transform">
+                  <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-500 drop-shadow-lg group-hover:drop-shadow-2xl">
                     {food.emoji}
                   </div>
 
                   {/* 음식명 */}
-                  <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-orange-400 transition-colors">
+                  <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-orange-400 transition-all duration-300">
                     {food.name}
                   </h3>
 
@@ -485,7 +485,7 @@ export default function EatHome() {
                   {/* 평점 */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-600">
                     <span className="text-yellow-400 font-semibold">{food.rating}</span>
-                    <button className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors">
+                    <button className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/50 hover:scale-105">
                       저장
                     </button>
                   </div>
@@ -511,10 +511,10 @@ export default function EatHome() {
 
         {/* 하단 CTA */}
         <div className="mt-16 text-center">
-          <div className="inline-block rounded-2xl bg-gradient-to-r from-orange-500/10 to-red-500/10 p-8 border border-orange-500/30">
-            <h2 className="text-2xl font-bold text-white mb-2">음식 추천이 마음에 들었나요?</h2>
-            <p className="text-gray-400 mb-4">친구들과 함께 추천 음식을 공유하고 함께 즐겨보세요!</p>
-            <button className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg font-semibold transition-all hover:scale-105">
+          <div className="inline-block rounded-2xl bg-gradient-to-r from-orange-500/10 to-red-500/10 backdrop-blur-sm p-8 border border-orange-500/30 shadow-xl">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent mb-2">음식 추천이 마음에 들었나요?</h2>
+            <p className="text-gray-300 mb-4">친구들과 함께 추천 음식을 공유하고 함께 즐겨보세요!</p>
+            <button className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/50">
               공유하기 🔗
             </button>
           </div>
