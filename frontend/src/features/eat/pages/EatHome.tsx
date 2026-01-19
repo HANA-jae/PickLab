@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type TabType = 'lunch' | 'dinner' | 'recipe';
 
@@ -34,7 +34,28 @@ export default function EatHome() {
   });
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // 각 단계별 선택지
+  // 현재 탭의 추천 상태
+  const currentRecommendation = recommendations[activeTab];
+
+  // 탭 변경 시 현재 탭의 상태 리셋
+  const handleTabChange = (tab: TabType) => {
+    if (activeTab === tab) {
+      // 같은 탭을 클릭했으면 상태 리셋
+      setRecommendations((prev) => ({
+        ...prev,
+        [tab]: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
+      }));
+      setErrorMessage('');
+    } else {
+      // 다른 탭으로 변경
+      setActiveTab(tab);
+    }
+  };
+
+  // 다른 탭으로 변경될 때
+  useEffect(() => {
+    setErrorMessage('');
+  }, [activeTab]);
   const lunchOptions = ['한식', '양식', '중식', '일식', '카페'];
   const dinnerOptions = ['고기', '해산물', '채식', '이탈리안', '기타'];
   const recipeOptions = ['간단한 요리', '밥요리', '면요리', '스프', '간식'];
@@ -190,7 +211,6 @@ export default function EatHome() {
     }
   };
 
-  const currentRecommendation = recommendations[activeTab];
   const step1Options = getStep1Options();
   const step2Options = getSubOptions();
 
@@ -212,7 +232,7 @@ export default function EatHome() {
           {(['lunch', 'dinner', 'recipe'] as TabType[]).map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => handleTabChange(tab)}
               className={`px-6 py-3 rounded-lg font-semibold text-lg transition-all ${
                 activeTab === tab
                   ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg scale-105'
