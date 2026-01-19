@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type GameType = 'number-guess' | 'reaction-test' | null;
 
@@ -26,6 +26,11 @@ const games: GameInfo[] = [
 
 export default function GameHome() {
   const [selectedGame, setSelectedGame] = useState<GameType>(null);
+
+  // 게임 페이지 진입 시 게임 리스트 화면으로 초기화
+  useEffect(() => {
+    setSelectedGame(null);
+  }, []);
 
   if (selectedGame === 'number-guess') {
     return <NumberGuessGame onBack={() => setSelectedGame(null)} />;
