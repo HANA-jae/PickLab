@@ -10,26 +10,36 @@ interface FoodItem {
   rating: string;
   category: string;
   subCategory: string;
+  taste: string;
+  priceRange: string;
+  feature: string;
 }
 
 interface RecommendationState {
-  selectedOption: string;
-  selectedSubOption: string;
+  step1: string; // 종류
+  step2: string; // 세부
+  step3: string; // 맛
+  step4: string; // 가격
+  step5: string; // 특징
   recommendedFoods: FoodItem[];
 }
 
 export default function EatHome() {
   const [activeTab, setActiveTab] = useState<TabType>('lunch');
   const [recommendations, setRecommendations] = useState<Record<TabType, RecommendationState>>({
-    lunch: { selectedOption: '', selectedSubOption: '', recommendedFoods: [] },
-    dinner: { selectedOption: '', selectedSubOption: '', recommendedFoods: [] },
-    recipe: { selectedOption: '', selectedSubOption: '', recommendedFoods: [] },
+    lunch: { step1: '', step2: '', step3: '', step4: '', step5: '', recommendedFoods: [] },
+    dinner: { step1: '', step2: '', step3: '', step4: '', step5: '', recommendedFoods: [] },
+    recipe: { step1: '', step2: '', step3: '', step4: '', step5: '', recommendedFoods: [] },
   });
 
-  // 각 탭별 1단계 선택 옵션
+  // 각 단계별 선택지
   const lunchOptions = ['한식', '양식', '중식', '일식', '카페'];
   const dinnerOptions = ['고기', '해산물', '채식', '이탈리안', '기타'];
   const recipeOptions = ['간단한 요리', '밥요리', '면요리', '스프', '간식'];
+
+  const tasteOptions = ['순한맛', '중간맛', '매운맛', '짭짤한맛', '상큼한맛'];
+  const priceOptions = ['저가', '중가', '고가'];
+  const featureOptions = ['빠르게', '건강식', '푸짐한', '가벼운', '특별한'];
 
   // 각 1단계 옵션별 2단계 선택지
   const lunchSubOptions: Record<string, string[]> = {
@@ -59,46 +69,46 @@ export default function EatHome() {
   // 각 탭별 음식 데이터
   const allFoods: Record<TabType, FoodItem[]> = {
     lunch: [
-      { id: 1, name: '김밥', description: '신선한 재료로 만든 영양 만점 김밥', emoji: '🍙', rating: '⭐ 4.5', category: '한식', subCategory: '밥' },
-      { id: 2, name: '주먹밥', description: '따뜻한 손으로 만든 주먹밥', emoji: '🍙', rating: '⭐ 4.3', category: '한식', subCategory: '밥' },
-      { id: 3, name: '된장국', description: '따뜻한 된장국', emoji: '🍲', rating: '⭐ 4.4', category: '한식', subCategory: '국/찌개' },
-      { id: 4, name: '부추전', description: '바삭한 부추전', emoji: '🥞', rating: '⭐ 4.5', category: '한식', subCategory: '튀김' },
-      { id: 5, name: '돈까스', description: '바삭한 튀김옷의 본연의 맛', emoji: '🍖', rating: '⭐ 4.7', category: '양식', subCategory: '고기' },
-      { id: 6, name: '파스타', description: '부드러운 크림 파스타', emoji: '🍝', rating: '⭐ 4.6', category: '양식', subCategory: '파스타' },
-      { id: 7, name: '짜장면', description: '깊은 맛의 중식 짜장면', emoji: '🍜', rating: '⭐ 4.4', category: '중식', subCategory: '면' },
-      { id: 8, name: '탕수육', description: '바삭한 탕수육', emoji: '🥡', rating: '⭐ 4.5', category: '중식', subCategory: '탕수육' },
-      { id: 9, name: '돈카츠', description: '일본식 돼지까스', emoji: '🍖', rating: '⭐ 4.6', category: '일식', subCategory: '돈카츠' },
-      { id: 10, name: '라멘', description: '깊은 국물맛의 라멘', emoji: '🍜', rating: '⭐ 4.7', category: '일식', subCategory: '우동/라멘' },
-      { id: 11, name: '아메리카노', description: '향긋한 아메리카노', emoji: '☕', rating: '⭐ 4.3', category: '카페', subCategory: '음료' },
-      { id: 12, name: '샌드위치', description: '신선한 재료의 샌드위치', emoji: '🥪', rating: '⭐ 4.4', category: '카페', subCategory: '샌드위치' },
+      { id: 1, name: '김밥', description: '신선한 재료로 만든 영양 만점 김밥', emoji: '🍙', rating: '⭐ 4.5', category: '한식', subCategory: '밥', taste: '순한맛', priceRange: '저가', feature: '빠르게' },
+      { id: 2, name: '주먹밥', description: '따뜻한 손으로 만든 주먹밥', emoji: '🍙', rating: '⭐ 4.3', category: '한식', subCategory: '밥', taste: '순한맛', priceRange: '저가', feature: '빠르게' },
+      { id: 3, name: '된장국', description: '따뜻한 된장국', emoji: '🍲', rating: '⭐ 4.4', category: '한식', subCategory: '국/찌개', taste: '짭짤한맛', priceRange: '저가', feature: '건강식' },
+      { id: 4, name: '부추전', description: '바삭한 부추전', emoji: '🥞', rating: '⭐ 4.5', category: '한식', subCategory: '튀김', taste: '짭짤한맛', priceRange: '중가', feature: '푸짐한' },
+      { id: 5, name: '돈까스', description: '바삭한 튀김옷의 본연의 맛', emoji: '🍖', rating: '⭐ 4.7', category: '양식', subCategory: '고기', taste: '순한맛', priceRange: '중가', feature: '푸짐한' },
+      { id: 6, name: '파스타', description: '부드러운 크림 파스타', emoji: '🍝', rating: '⭐ 4.6', category: '양식', subCategory: '파스타', taste: '중간맛', priceRange: '중가', feature: '특별한' },
+      { id: 7, name: '짜장면', description: '깊은 맛의 중식 짜장면', emoji: '🍜', rating: '⭐ 4.4', category: '중식', subCategory: '면', taste: '짭짤한맛', priceRange: '저가', feature: '빠르게' },
+      { id: 8, name: '탕수육', description: '바삭한 탕수육', emoji: '🥡', rating: '⭐ 4.5', category: '중식', subCategory: '탕수육', taste: '중간맛', priceRange: '중가', feature: '푸짐한' },
+      { id: 9, name: '돈카츠', description: '일본식 돼지까스', emoji: '🍖', rating: '⭐ 4.6', category: '일식', subCategory: '돈카츠', taste: '순한맛', priceRange: '중가', feature: '푸짐한' },
+      { id: 10, name: '라멘', description: '깊은 국물맛의 라멘', emoji: '🍜', rating: '⭐ 4.7', category: '일식', subCategory: '우동/라멘', taste: '중간맛', priceRange: '중가', feature: '따뜻한' },
+      { id: 11, name: '아메리카노', description: '향긋한 아메리카노', emoji: '☕', rating: '⭐ 4.3', category: '카페', subCategory: '음료', taste: '상큼한맛', priceRange: '저가', feature: '가벼운' },
+      { id: 12, name: '샌드위치', description: '신선한 재료의 샌드위치', emoji: '🥪', rating: '⭐ 4.4', category: '카페', subCategory: '샌드위치', taste: '순한맛', priceRange: '중가', feature: '빠르게' },
     ],
     dinner: [
-      { id: 1, name: '삼겹살 구이', description: '고기의 참맛을 느낄 수 있는 최고의 선택', emoji: '🥩', rating: '⭐ 4.9', category: '고기', subCategory: '돼지고기' },
-      { id: 2, name: '소불고기', description: '양념한 소고기의 맛', emoji: '🥩', rating: '⭐ 4.8', category: '고기', subCategory: '소고기' },
-      { id: 3, name: '생선까스', description: '담백한 흰살 생선의 별미', emoji: '🍤', rating: '⭐ 4.5', category: '해산물', subCategory: '생선' },
-      { id: 4, name: '회', description: '신선한 생선회', emoji: '🍣', rating: '⭐ 4.7', category: '해산물', subCategory: '생선' },
-      { id: 5, name: '야채볶음', description: '싱싱한 야채의 조화', emoji: '🥘', rating: '⭐ 4.4', category: '채식', subCategory: '야채' },
-      { id: 6, name: '두부구이', description: '부드러운 두부 구이', emoji: '🥡', rating: '⭐ 4.3', category: '채식', subCategory: '두부' },
-      { id: 7, name: '리조또', description: '이탈리안 리조또', emoji: '🍚', rating: '⭐ 4.6', category: '이탈리안', subCategory: '리조또' },
-      { id: 8, name: '오일 파스타', description: '마늘향 가득한 파스타', emoji: '🍝', rating: '⭐ 4.7', category: '이탈리안', subCategory: '파스타' },
-      { id: 9, name: '닭다리', description: '쫄깃한 닭다리구이', emoji: '🍗', rating: '⭐ 4.8', category: '기타', subCategory: '고기' },
-      { id: 10, name: '스테이크', description: '특별한 날을 위한 프리미엄 요리', emoji: '🥩', rating: '⭐ 4.7', category: '기타', subCategory: '고기' },
+      { id: 1, name: '삼겹살 구이', description: '고기의 참맛을 느낄 수 있는 최고의 선택', emoji: '🥩', rating: '⭐ 4.9', category: '고기', subCategory: '돼지고기', taste: '짭짤한맛', priceRange: '중가', feature: '푸짐한' },
+      { id: 2, name: '소불고기', description: '양념한 소고기의 맛', emoji: '🥩', rating: '⭐ 4.8', category: '고기', subCategory: '소고기', taste: '중간맛', priceRange: '고가', feature: '특별한' },
+      { id: 3, name: '생선까스', description: '담백한 흰살 생선의 별미', emoji: '🍤', rating: '⭐ 4.5', category: '해산물', subCategory: '생선', taste: '순한맛', priceRange: '중가', feature: '건강식' },
+      { id: 4, name: '회', description: '신선한 생선회', emoji: '🍣', rating: '⭐ 4.7', category: '해산물', subCategory: '생선', taste: '상큼한맛', priceRange: '고가', feature: '특별한' },
+      { id: 5, name: '야채볶음', description: '싱싱한 야채의 조화', emoji: '🥘', rating: '⭐ 4.4', category: '채식', subCategory: '야채', taste: '순한맛', priceRange: '저가', feature: '건강식' },
+      { id: 6, name: '두부구이', description: '부드러운 두부 구이', emoji: '🥡', rating: '⭐ 4.3', category: '채식', subCategory: '두부', taste: '순한맛', priceRange: '저가', feature: '건강식' },
+      { id: 7, name: '리조또', description: '이탈리안 리조또', emoji: '🍚', rating: '⭐ 4.6', category: '이탈리안', subCategory: '리조또', taste: '중간맛', priceRange: '중가', feature: '특별한' },
+      { id: 8, name: '오일 파스타', description: '마늘향 가득한 파스타', emoji: '🍝', rating: '⭐ 4.7', category: '이탈리안', subCategory: '파스타', taste: '중간맛', priceRange: '중가', feature: '특별한' },
+      { id: 9, name: '닭다리', description: '쫄깃한 닭다리구이', emoji: '🍗', rating: '⭐ 4.8', category: '기타', subCategory: '고기', taste: '짭짤한맛', priceRange: '저가', feature: '푸짐한' },
+      { id: 10, name: '스테이크', description: '특별한 날을 위한 프리미엄 요리', emoji: '🥩', rating: '⭐ 4.7', category: '기타', subCategory: '고기', taste: '중간맛', priceRange: '고가', feature: '특별한' },
     ],
     recipe: [
-      { id: 1, name: '계란 볶음밥', description: '남은 밥으로 만드는 쉽고 맛있는 요리', emoji: '🍚', rating: '⭐ 4.3', category: '밥요리', subCategory: '볶음밥' },
-      { id: 2, name: '덮밥', description: '재료 올려서 만드는 한그릇 요리', emoji: '🍚', rating: '⭐ 4.4', category: '밥요리', subCategory: '덮밥' },
-      { id: 3, name: '파스타', description: '집에서 쉽게 만드는 이탈리아 요리', emoji: '🍝', rating: '⭐ 4.6', category: '면요리', subCategory: '파스타' },
-      { id: 4, name: '우동', description: '쫄깃한 면발', emoji: '🍜', rating: '⭐ 4.5', category: '면요리', subCategory: '우동' },
-      { id: 5, name: '된장국', description: '따뜻한 된장국', emoji: '🍲', rating: '⭐ 4.4', category: '스프', subCategory: '국' },
-      { id: 6, name: '계란탕', description: '계란이 들어간 수프', emoji: '🍲', rating: '⭐ 4.3', category: '스프', subCategory: '탕' },
-      { id: 7, name: '계란말이', description: '간식으로도 반찬으로도 좋은 요리', emoji: '🥚', rating: '⭐ 4.4', category: '간식', subCategory: '계란말이' },
-      { id: 8, name: '팬케이크', description: '달콤한 팬케이크', emoji: '🥞', rating: '⭐ 4.6', category: '간식', subCategory: '디저트' },
-      { id: 9, name: '주먹밥', description: '주먹밥 만들기', emoji: '🍙', rating: '⭐ 4.5', category: '간단한 요리', subCategory: '주먹밥' },
-      { id: 10, name: '계란 계란계란', description: '계란 요리 대전', emoji: '🥚', rating: '⭐ 4.2', category: '간단한 요리', subCategory: '계란' },
+      { id: 1, name: '계란 볶음밥', description: '남은 밥으로 만드는 쉽고 맛있는 요리', emoji: '🍚', rating: '⭐ 4.3', category: '밥요리', subCategory: '볶음밥', taste: '짭짤한맛', priceRange: '저가', feature: '빠르게' },
+      { id: 2, name: '덮밥', description: '재료 올려서 만드는 한그릇 요리', emoji: '🍚', rating: '⭐ 4.4', category: '밥요리', subCategory: '덮밥', taste: '중간맛', priceRange: '저가', feature: '빠르게' },
+      { id: 3, name: '파스타', description: '집에서 쉽게 만드는 이탈리아 요리', emoji: '🍝', rating: '⭐ 4.6', category: '면요리', subCategory: '파스타', taste: '중간맛', priceRange: '중가', feature: '빠르게' },
+      { id: 4, name: '우동', description: '쫄깃한 면발', emoji: '🍜', rating: '⭐ 4.5', category: '면요리', subCategory: '우동', taste: '짭짤한맛', priceRange: '저가', feature: '따뜻한' },
+      { id: 5, name: '된장국', description: '따뜻한 된장국', emoji: '🍲', rating: '⭐ 4.4', category: '스프', subCategory: '국', taste: '짭짤한맛', priceRange: '저가', feature: '건강식' },
+      { id: 6, name: '계란탕', description: '계란이 들어간 수프', emoji: '🍲', rating: '⭐ 4.3', category: '스프', subCategory: '탕', taste: '순한맛', priceRange: '저가', feature: '건강식' },
+      { id: 7, name: '계란말이', description: '간식으로도 반찬으로도 좋은 요리', emoji: '🥚', rating: '⭐ 4.4', category: '간식', subCategory: '계란말이', taste: '순한맛', priceRange: '저가', feature: '빠르게' },
+      { id: 8, name: '팬케이크', description: '달콤한 팬케이크', emoji: '🥞', rating: '⭐ 4.6', category: '간식', subCategory: '디저트', taste: '중간맛', priceRange: '중가', feature: '특별한' },
+      { id: 9, name: '주먹밥', description: '주먹밥 만들기', emoji: '🍙', rating: '⭐ 4.5', category: '간단한 요리', subCategory: '주먹밥', taste: '순한맛', priceRange: '저가', feature: '빠르게' },
+      { id: 10, name: '계란 계란계란', description: '계란 요리 대전', emoji: '🥚', rating: '⭐ 4.2', category: '간단한 요리', subCategory: '계란', taste: '순한맛', priceRange: '저가', feature: '빠르게' },
     ],
   };
 
-  const getOptions = () => {
+  const getStep1Options = () => {
     switch (activeTab) {
       case 'lunch':
         return lunchOptions;
@@ -112,16 +122,16 @@ export default function EatHome() {
   };
 
   const getSubOptions = () => {
-    const selectedOption = recommendations[activeTab].selectedOption;
-    if (!selectedOption) return [];
+    const step1 = recommendations[activeTab].step1;
+    if (!step1) return [];
 
     switch (activeTab) {
       case 'lunch':
-        return lunchSubOptions[selectedOption] || [];
+        return lunchSubOptions[step1] || [];
       case 'dinner':
-        return dinnerSubOptions[selectedOption] || [];
+        return dinnerSubOptions[step1] || [];
       case 'recipe':
-        return recipeSubOptions[selectedOption] || [];
+        return recipeSubOptions[step1] || [];
       default:
         return [];
     }
@@ -133,17 +143,20 @@ export default function EatHome() {
   };
 
   const handleGetRecommendation = () => {
-    const selectedOption = recommendations[activeTab].selectedOption;
-    const selectedSubOption = recommendations[activeTab].selectedSubOption;
-
-    if (!selectedOption || !selectedSubOption) {
-      alert('종류와 세부 선택지를 모두 선택해주세요!');
+    const current = recommendations[activeTab];
+    if (!current.step1 || !current.step2 || !current.step3 || !current.step4 || !current.step5) {
+      alert('모든 단계를 선택해주세요!');
       return;
     }
 
     const foods = allFoods[activeTab];
     const filteredFoods = foods.filter(
-      (food) => food.category === selectedOption && food.subCategory === selectedSubOption
+      (food) =>
+        food.category === current.step1 &&
+        food.subCategory === current.step2 &&
+        food.taste === current.step3 &&
+        food.priceRange === current.step4 &&
+        food.feature === current.step5
     );
     const recommendedFoods = getRandomFoods(filteredFoods, 3);
 
@@ -155,8 +168,7 @@ export default function EatHome() {
     setRecommendations((prev) => ({
       ...prev,
       [activeTab]: {
-        selectedOption,
-        selectedSubOption,
+        ...prev[activeTab],
         recommendedFoods,
       },
     }));
@@ -176,8 +188,8 @@ export default function EatHome() {
   };
 
   const currentRecommendation = recommendations[activeTab];
-  const options = getOptions();
-  const subOptions = getSubOptions();
+  const step1Options = getStep1Options();
+  const step2Options = getSubOptions();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -211,80 +223,144 @@ export default function EatHome() {
 
         {/* 선택지 섹션 */}
         <div className="mb-12">
-          <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-2xl p-8 border border-gray-700">
-            {/* 1단계: 메인 선택지 */}
-            <h2 className="text-2xl font-bold text-white mb-6">1단계: 원하는 종류를 선택하세요</h2>
-            <div className="flex flex-wrap gap-3 mb-10">
-              {options.map((option) => (
-                <button
-                  key={option}
-                  onClick={() =>
-                    setRecommendations((prev) => ({
-                      ...prev,
-                      [activeTab]: {
-                        selectedOption: option,
-                        selectedSubOption: '',
-                        recommendedFoods: [],
-                      },
-                    }))
-                  }
-                  className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                    currentRecommendation.selectedOption === option
-                      ? 'bg-blue-500 text-white shadow-lg scale-105'
-                      : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
+          <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-2xl p-8 border border-gray-700 space-y-8">
+            {/* Step 1 */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4">1️⃣ 종류</h3>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {step1Options.map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() =>
+                      setRecommendations((prev) => ({
+                        ...prev,
+                        [activeTab]: { ...prev[activeTab], step1: opt, step2: '', step3: '', step4: '', step5: '', recommendedFoods: [] },
+                      }))
+                    }
+                    className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                      currentRecommendation.step1 === opt
+                        ? 'bg-blue-500 text-white shadow-lg'
+                        : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* 선택된 1단계 옵션 표시 */}
-            {currentRecommendation.selectedOption && (
-              <div className="mb-8 p-4 bg-blue-500/20 border border-blue-500/50 rounded-lg">
-                <p className="text-blue-300">
-                  ✓ <span className="font-semibold">{currentRecommendation.selectedOption}</span> 선택됨
-                </p>
-              </div>
-            )}
-
-            {/* 2단계: 세부 선택지 */}
-            {currentRecommendation.selectedOption && subOptions.length > 0 && (
+            {/* Step 2 */}
+            {currentRecommendation.step1 && (
               <div>
-                <h2 className="text-2xl font-bold text-white mb-6">2단계: 더 자세히 선택해주세요</h2>
-                <div className="flex flex-wrap gap-3 mb-8">
-                  {subOptions.map((subOption) => (
+                <h3 className="text-xl font-bold text-white mb-4">2️⃣ 세부 카테고리</h3>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {step2Options.map((opt) => (
                     <button
-                      key={subOption}
+                      key={opt}
                       onClick={() =>
                         setRecommendations((prev) => ({
                           ...prev,
-                          [activeTab]: {
-                            ...prev[activeTab],
-                            selectedSubOption: subOption,
-                            recommendedFoods: [],
-                          },
+                          [activeTab]: { ...prev[activeTab], step2: opt, step3: '', step4: '', step5: '', recommendedFoods: [] },
                         }))
                       }
-                      className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                        currentRecommendation.selectedSubOption === subOption
-                          ? 'bg-green-500 text-white shadow-lg scale-105'
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                        currentRecommendation.step2 === opt
+                          ? 'bg-green-500 text-white shadow-lg'
                           : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                       }`}
                     >
-                      {subOption}
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 3 */}
+            {currentRecommendation.step2 && (
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">3️⃣ 맛</h3>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {tasteOptions.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() =>
+                        setRecommendations((prev) => ({
+                          ...prev,
+                          [activeTab]: { ...prev[activeTab], step3: opt, step4: '', step5: '', recommendedFoods: [] },
+                        }))
+                      }
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                        currentRecommendation.step3 === opt
+                          ? 'bg-yellow-500 text-white shadow-lg'
+                          : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 4 */}
+            {currentRecommendation.step3 && (
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">4️⃣ 가격</h3>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {priceOptions.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() =>
+                        setRecommendations((prev) => ({
+                          ...prev,
+                          [activeTab]: { ...prev[activeTab], step4: opt, step5: '', recommendedFoods: [] },
+                        }))
+                      }
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                        currentRecommendation.step4 === opt
+                          ? 'bg-purple-500 text-white shadow-lg'
+                          : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 5 */}
+            {currentRecommendation.step4 && (
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">5️⃣ 특징</h3>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {featureOptions.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() =>
+                        setRecommendations((prev) => ({
+                          ...prev,
+                          [activeTab]: { ...prev[activeTab], step5: opt, recommendedFoods: [] },
+                        }))
+                      }
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                        currentRecommendation.step5 === opt
+                          ? 'bg-pink-500 text-white shadow-lg'
+                          : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                      }`}
+                    >
+                      {opt}
                     </button>
                   ))}
                 </div>
 
-                {/* 선택된 2단계 옵션 표시 */}
-                {currentRecommendation.selectedSubOption && (
-                  <div className="mb-8 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
-                    <p className="text-green-300">
-                      ✓ <span className="font-semibold">{currentRecommendation.selectedSubOption}</span> 선택됨
-                    </p>
-                  </div>
-                )}
+                {/* 선택 요약 */}
+                <div className="mb-6 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/50 rounded-lg">
+                  <p className="text-white text-sm">
+                    <span className="font-semibold">선택 요약:</span> {currentRecommendation.step1} → {currentRecommendation.step2} → {currentRecommendation.step3} → {currentRecommendation.step4} → {currentRecommendation.step5}
+                  </p>
+                </div>
 
                 {/* 추천받기 버튼 */}
                 <button
