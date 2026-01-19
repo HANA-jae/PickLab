@@ -97,7 +97,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">
-              세 가지 즐거움이 준비되어 있어요
+              여러 가지 즐거움이 준비되어 있어요
             </h2>
             <p className="text-xl text-gray-400">
               편하게 들어와서 당신이 원하는 것을 찾으세요
@@ -199,10 +199,10 @@ export default function HomePage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white mb-2">
-                안전한 플랫폼
+                빠른 피드백 수용
               </h3>
               <p className="text-gray-400">
-                당신의 데이터를 안전하게 보호합니다
+                언제나 원하는 부분을 개선하고 새로운 기능을 추가합니다
               </p>
             </div>
             <div>
