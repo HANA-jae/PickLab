@@ -6,7 +6,7 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+  const apiUrl = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3001'
 
   useEffect(() => {
     const fetchMessage = async () => {
