@@ -255,73 +255,70 @@ export default function EatHome() {
 
             {/* Step 2 */}
             {currentRecommendation.step1 && (
-              <div className="relative">
+              <div>
                 <h3 className="text-xl font-bold text-white mb-4">2️⃣ 세부 카테고리</h3>
-                <div className="flex items-start gap-6">
-                  {/* 왼쪽: 세부 카테고리 버튼들 */}
-                  <div className="flex flex-wrap gap-2 flex-1">
-                    {step2Options.map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => {
-                          setRecommendations((prev) => ({
-                            ...prev,
-                            [activeTab]: { ...prev[activeTab], step2: opt, step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
-                          }));
-                          setErrorMessage('');
-                        }}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
-                          currentRecommendation.step2 === opt
-                            ? 'bg-green-500 text-white shadow-lg'
-                            : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {step2Options.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => {
+                        setRecommendations((prev) => ({
+                          ...prev,
+                          [activeTab]: { ...prev[activeTab], step2: opt, step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
+                        }));
+                        setErrorMessage('');
+                      }}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                        currentRecommendation.step2 === opt
+                          ? 'bg-green-500 text-white shadow-lg'
+                          : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
 
-                  {/* 오른쪽: 해장용 체크박스 */}
-                  {currentRecommendation.step2 && (
-                    <div className="animate-in fade-in slide-in-from-right-4 duration-500 mt-2">
-                      <div className="bg-gradient-to-br from-orange-400 to-red-400 rounded-xl p-4 min-w-max shadow-lg border border-orange-300">
-                        <p className="text-white font-bold text-sm mb-3">🍜 해장?</p>
-                        <div className="flex flex-col gap-2">
-                          <label className="flex items-center gap-2 cursor-pointer group">
-                            <input
-                              type="checkbox"
-                              checked={currentRecommendation.isHangover === true}
-                              onChange={() => {
-                                setRecommendations((prev) => ({
-                                  ...prev,
-                                  [activeTab]: { ...prev[activeTab], isHangover: true },
-                                }));
-                                setErrorMessage('');
-                              }}
-                              className="w-5 h-5 accent-red-500 cursor-pointer"
-                            />
-                            <span className="text-white text-sm font-semibold group-hover:text-orange-100">예</span>
-                          </label>
-                          <label className="flex items-center gap-2 cursor-pointer group">
-                            <input
-                              type="checkbox"
-                              checked={currentRecommendation.isHangover === false && currentRecommendation.step2 !== ''}
-                              onChange={() => {
-                                setRecommendations((prev) => ({
-                                  ...prev,
-                                  [activeTab]: { ...prev[activeTab], isHangover: false },
-                                }));
-                                setErrorMessage('');
-                              }}
-                              className="w-5 h-5 accent-blue-500 cursor-pointer"
-                            />
-                            <span className="text-white text-sm font-semibold group-hover:text-orange-100">아니오</span>
-                          </label>
-                        </div>
+                {/* 해장용 체크박스 - 가로 배치 */}
+                {currentRecommendation.step2 && (
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="bg-gray-700/50 hover:bg-gray-700/70 transition-colors rounded-lg p-4 border border-gray-600 max-w-2xl">
+                      <p className="text-gray-300 font-semibold text-sm mb-3">🍜 해장용이신가요?</p>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={currentRecommendation.isHangover === true}
+                            onChange={() => {
+                              setRecommendations((prev) => ({
+                                ...prev,
+                                [activeTab]: { ...prev[activeTab], isHangover: true },
+                              }));
+                              setErrorMessage('');
+                            }}
+                            className="w-4 h-4 cursor-pointer accent-orange-400"
+                          />
+                          <span className="text-gray-300 text-sm group-hover:text-white">예 (해장용)</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={currentRecommendation.isHangover === false && currentRecommendation.step2 !== ''}
+                            onChange={() => {
+                              setRecommendations((prev) => ({
+                                ...prev,
+                                [activeTab]: { ...prev[activeTab], isHangover: false },
+                              }));
+                              setErrorMessage('');
+                            }}
+                            className="w-4 h-4 cursor-pointer accent-blue-400"
+                          />
+                          <span className="text-gray-300 text-sm group-hover:text-white">아니오 (일반)</span>
+                        </label>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
