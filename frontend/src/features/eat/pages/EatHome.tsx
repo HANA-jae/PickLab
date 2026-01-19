@@ -33,6 +33,33 @@ export default function EatHome() {
     recipe: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
   });
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [adminFoods, setAdminFoods] = useState<FoodItem[]>([]);
+
+  // 관리자가 추가한 음식 불러오기
+  useEffect(() => {
+    const savedFoods = localStorage.getItem('adminFoods');
+    if (savedFoods) {
+      try {
+        const parsed = JSON.parse(savedFoods);
+        // tab 속성을 가진 음식들을 FoodItem 형식으로 변환
+        const converted = parsed.map((food: any) => ({
+          id: food.id,
+          name: food.name,
+          description: food.description,
+          emoji: food.emoji,
+          rating: food.rating,
+          category: food.category,
+          subCategory: food.subCategory,
+          taste: food.taste,
+          priceRange: food.priceRange,
+          feature: food.feature,
+        }));
+        setAdminFoods(converted);
+      } catch (error) {
+        console.error('Failed to load admin foods:', error);
+      }
+    }
+  }, []);
 
   // 현재 탭의 추천 상태
   const currentRecommendation = recommendations[activeTab];
@@ -172,8 +199,12 @@ export default function EatHome() {
       return;
     }
 
-    const foods = allFoods[activeTab];
-    const filteredFoods = foods.filter(
+    // 기본 음식 + 관리자가 추가한 음식 (현재 탭에 맞는 것만)
+    const baseFoods = allFoods[activeTab];
+    const adminFoodsForTab = adminFoods.filter((food: any) => food.tab === activeTab);
+    const allAvailableFoods = [...baseFoods, ...adminFoodsForTab];
+
+    const filteredFoods = allAvailableFoods.filter(
       (food) =>
         food.category === current.step1 &&
         food.subCategory === current.step2 &&
