@@ -5,36 +5,36 @@ export default function HomePage() {
     {
       id: 'eat',
       title: '🍔 음식',
-      description: '맛있는 음식 정보를 탐색하고 새로운 레시피를 발견해보세요',
+      description: '오늘 점심 뭐 먹을지 고민이세요? 술안주가 필요하신가요? 편하게 들어와서 추천받으세요',
       path: '/eat',
       color: 'from-orange-500 to-red-500',
       icon: '🍽️',
-      features: ['음식 검색', '레시피', '영양 정보'],
+      features: ['오늘의 점심 추천', '저녁 메뉴 추천', '술안주 추천'],
     },
     {
       id: 'game',
       title: '🎮 게임',
-      description: '재미있는 게임으로 시간을 보내고 친구들과 경쟁해보세요',
+      description: '직장에서 지루하신가요? 쉬는 시간에 가볍게 즐길 수 있는 재미있는 미니게임들을 지금 바로',
       path: '/game',
       color: 'from-green-500 to-emerald-500',
       icon: '🏆',
-      features: ['다양한 게임', '점수 랭킹', '업적'],
+      features: ['가벼운 미니게임', '5분 안에 즐기기', '친구들과 겨루기'],
     },
     {
       id: 'test',
       title: '📝 테스트',
-      description: '다양한 주제의 퀴즈와 테스트로 지식을 확장해보세요',
+      description: '연인이나 친구들과 함께 즐길 수 있는 신기하고 재미있는 심리테스트들이 가득해요',
       path: '/test',
       color: 'from-purple-500 to-indigo-500',
       icon: '🎯',
-      features: ['퀴즈', '학습 경로', '인증서'],
+      features: ['심리테스트', '성격 유형 검사', '친구들과 공유하기'],
     },
   ];
 
   const stats = [
-    { label: '활성 사용자', value: '10K+' },
-    { label: '완료된 게임', value: '50K+' },
-    { label: '테스트 문제', value: '1K+' },
+    { label: '매일 방문하는 사람들', value: '10K+' },
+    { label: '즐겨지는 게임', value: '50+' },
+    { label: '재미있는 테스트', value: '100+' },
   ];
 
   return (
@@ -49,15 +49,15 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-white mb-6">
-            모든 것을 배우고,
+            언제나 편하게
             <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              즐기며 성장하세요
+              들어와서 즐기세요
             </span>
           </h1>
 
           <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-            음식, 게임, 테스트를 통해 재미있게 배우고 성장할 수 있는 플랫폼입니다.
-            지금 시작하고 커뮤니티에 참여하세요.
+            점심 추천부터 미니게임, 심리테스트까지.
+            언제나 편하게 들어와서 즐길 수 있는 공간입니다.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
@@ -97,10 +97,10 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">
-              다양한 경험을 제공합니다
+              세 가지 즐거움이 준비되어 있어요
             </h2>
             <p className="text-xl text-gray-400">
-              각 카테고리에서 당신에게 맞는 경험을 찾아보세요
+              편하게 들어와서 당신이 원하는 것을 찾으세요
             </p>
           </div>
 
@@ -168,10 +168,10 @@ export default function HomePage() {
 
             <div className="relative z-10 text-center">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                준비가 되셨나요?
+                지금 바로 들어와보세요
               </h2>
               <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-                지금 바로 시작하고 수천 명의 사용자와 함께 성장해보세요.
+                수천 명의 사람들이 매일 즐기는 PickLab에서 당신을 기다리고 있습니다.
               </p>
 
               <Link
@@ -191,10 +191,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
               <h3 className="text-lg font-semibold text-white mb-2">
-                빠른 응답속도
+                언제나 준비된 콘텐츠
               </h3>
               <p className="text-gray-400">
-                최적화된 성능으로 완벽한 사용자 경험 제공
+                언제든 들어와서 즐길 수 있는 다양한 콘텐츠가 항상 준비되어 있어요
               </p>
             </div>
             <div>
