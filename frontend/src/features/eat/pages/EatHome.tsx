@@ -21,15 +21,16 @@ interface RecommendationState {
   step3: string; // 맛
   step4: string; // 가격
   step5: string; // 특징
+  isHangover: boolean; // 해장 여부
   recommendedFoods: FoodItem[];
 }
 
 export default function EatHome() {
   const [activeTab, setActiveTab] = useState<TabType>('lunch');
   const [recommendations, setRecommendations] = useState<Record<TabType, RecommendationState>>({
-    lunch: { step1: '', step2: '', step3: '', step4: '', step5: '', recommendedFoods: [] },
-    dinner: { step1: '', step2: '', step3: '', step4: '', step5: '', recommendedFoods: [] },
-    recipe: { step1: '', step2: '', step3: '', step4: '', step5: '', recommendedFoods: [] },
+    lunch: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
+    dinner: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
+    recipe: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
   });
 
   // 각 단계별 선택지
@@ -251,18 +252,18 @@ export default function EatHome() {
 
             {/* Step 2 */}
             {currentRecommendation.step1 && (
-              <div>
+              <div className="relative">
                 <h3 className="text-xl font-bold text-white mb-4">2️⃣ 세부 카테고리</h3>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {step2Options.map((opt) => (
                     <button
                       key={opt}
-                      onClick={() =>
+                      onClick={() => {
                         setRecommendations((prev) => ({
                           ...prev,
-                          [activeTab]: { ...prev[activeTab], step2: opt, step3: '', step4: '', step5: '', recommendedFoods: [] },
-                        }))
-                      }
+                          [activeTab]: { ...prev[activeTab], step2: opt, step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
+                        }));
+                      }}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
                         currentRecommendation.step2 === opt
                           ? 'bg-green-500 text-white shadow-lg'
@@ -273,11 +274,59 @@ export default function EatHome() {
                     </button>
                   ))}
                 </div>
+
+                {/* 해장용 질문 팝업 - 애니메이션 */}
+                {currentRecommendation.step2 && (
+                  <div className="mt-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 border-2 border-orange-400 rounded-2xl p-6 relative">
+                      {/* 체크박스 아이콘 */}
+                      <div className="absolute -top-4 -left-4 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg animate-bounce">
+                        ✓
+                      </div>
+
+                      <div className="ml-4">
+                        <p className="text-white font-bold text-lg mb-4">🍜 해장용이신가요?</p>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() =>
+                              setRecommendations((prev) => ({
+                                ...prev,
+                                [activeTab]: { ...prev[activeTab], isHangover: true },
+                              }))
+                            }
+                            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all ${
+                              currentRecommendation.isHangover === true
+                                ? 'bg-red-500 text-white shadow-lg'
+                                : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                            }`}
+                          >
+                            예 (해장용)
+                          </button>
+                          <button
+                            onClick={() =>
+                              setRecommendations((prev) => ({
+                                ...prev,
+                                [activeTab]: { ...prev[activeTab], isHangover: false },
+                              }))
+                            }
+                            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all ${
+                              currentRecommendation.isHangover === false && currentRecommendation.step2 !== ''
+                                ? 'bg-blue-500 text-white shadow-lg'
+                                : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                            }`}
+                          >
+                            아니오 (일반)
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Step 3 */}
-            {currentRecommendation.step2 && (
+            {currentRecommendation.step2 && currentRecommendation.isHangover !== undefined && (
               <div>
                 <h3 className="text-xl font-bold text-white mb-4">3️⃣ 맛</h3>
                 <div className="flex flex-wrap gap-2 mb-3">
