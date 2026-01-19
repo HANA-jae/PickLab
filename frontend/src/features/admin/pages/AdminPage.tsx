@@ -1,23 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import * as XLSX from 'xlsx';
-
-type TabType = 'lunch' | 'dinner' | 'recipe';
-
-interface FoodItem {
-  id: number;
-  name: string;
-  description: string;
-  emoji: string;
-  rating: string;
-  category: string;
-  subCategory: string;
-  taste: string;
-  priceRange: string;
-  feature: string;
-  tab: TabType;
-}
+import type { TabType, FoodItem } from '../../../types';
+import { useMenuProperties } from '../../../hooks/useMenuProperties';
 
 export default function AdminPage() {
+  const { properties, addFood, updateFood, deleteFood, setTabMenus } = useMenuProperties();
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingFood, setEditingFood] = useState<FoodItem | null>(null);
@@ -38,19 +25,15 @@ export default function AdminPage() {
     tab: 'lunch',
   });
 
-  // localStorage에서 음식 데이터 불러오기
+  // 프로퍼티로부터 전체 음식 불러오기 (탭 합치기)
   useEffect(() => {
-    const savedFoods = localStorage.getItem('adminFoods');
-    if (savedFoods) {
-      setFoods(JSON.parse(savedFoods));
-    }
-  }, []);
-
-  // localStorage에 음식 데이터 저장
-  const saveFoods = (newFoods: FoodItem[]) => {
-    localStorage.setItem('adminFoods', JSON.stringify(newFoods));
-    setFoods(newFoods);
-  };
+    const merged = [
+      ...properties.menus.lunch,
+      ...properties.menus.dinner,
+      ...properties.menus.recipe,
+    ];
+    setFoods(merged);
+  }, [properties.updatedAt]);
 
   // 음식 추가
   const handleAddFood = () => {
@@ -73,7 +56,8 @@ export default function AdminPage() {
       tab: formData.tab!,
     };
 
-    saveFoods([...foods, newFood]);
+    addFood(newFood.tab as TabType, newFood);
+    setFoods((prev) => [...prev, newFood]);
     resetForm();
     setIsFormOpen(false);
   };
@@ -85,13 +69,12 @@ export default function AdminPage() {
       return;
     }
 
-    const updatedFoods = foods.map((food) =>
-      food.id === editingFood.id
-        ? { ...food, ...formData } as FoodItem
-        : food
-    );
-
-    saveFoods(updatedFoods);
+    const updated: FoodItem = {
+      ...(editingFood as FoodItem),
+      ...formData,
+    } as FoodItem;
+    updateFood(updated.tab as TabType, updated.id, updated);
+    setFoods((prev) => prev.map((f) => (f.id === updated.id ? updated : f)));
     resetForm();
     setEditingFood(null);
     setIsFormOpen(false);
@@ -100,7 +83,11 @@ export default function AdminPage() {
   // 음식 삭제
   const handleDeleteFood = (id: number) => {
     if (confirm('정말 이 음식을 삭제하시겠습니까?')) {
-      saveFoods(foods.filter((food) => food.id !== id));
+      const target = foods.find((f) => f.id === id);
+      if (target && target.tab) {
+        deleteFood(target.tab as TabType, id);
+      }
+      setFoods((prev) => prev.filter((f) => f.id !== id));
     }
   };
 
@@ -129,9 +116,9 @@ export default function AdminPage() {
   };
 
   // 필터링된 음식 목록
-  const filteredFoods = filterTab === 'all' 
-    ? foods 
-    : foods.filter(food => food.tab === filterTab);
+  const filteredFoods = filterTab === 'all'
+    ? foods
+    : foods.filter((food) => food.tab === filterTab);
 
   // 엑셀 파일 업로드 처리
   const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,8 +158,9 @@ export default function AdminPage() {
           return;
         }
 
-        // 기존 음식에 새 음식 추가
-        saveFoods([...foods, ...newFoods]);
+        // 해당 탭에 일괄 추가 (프로퍼티)
+        setTabMenus(uploadTab, [...properties.menus[uploadTab], ...newFoods]);
+        setFoods((prev) => [...prev, ...newFoods]);
         alert(`${newFoods.length}개의 음식이 추가되었습니다!`);
         
         // 파일 입력 초기화

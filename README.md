@@ -1,4 +1,42 @@
 # PickLab
+## 메뉴 프로퍼티 저장소 추상화
+
+메뉴 데이터는 전역 프로퍼티(`MenuProperties`)로 관리되며, 저장소 추상화(`MenuRepository`)를 통해 로컬/원격 저장을 교체할 수 있습니다.
+
+- 인터페이스: `frontend/src/services/menuRepository.ts`의 `MenuRepository` (`load`, `save`)
+- 로컬 저장소: `LocalStorageMenuRepository` (기본값)
+- 원격 API: `ApiMenuRepository` (`GET/PUT /menu-properties`)
+
+훅 `useMenuProperties`는 저장소를 자동 선택합니다.
+
+- `VITE_USE_REMOTE_MENU` 또는 `VITE_API_URL`이 설정되어 있으면 원격 저장소를 사용합니다.
+- 옵션으로 저장소를 직접 주입할 수도 있습니다: `useMenuProperties({ repository })`
+
+### 백엔드 연동 가이드(선택)
+
+원격 저장소 사용 시, 백엔드(NestJS)에 아래 엔드포인트를 추가하세요.
+
+1. `GET /menu-properties`: 현재 `MenuProperties` 반환
+2. `PUT /menu-properties`: 본문으로 받은 `MenuProperties` 저장
+
+간단한 메모리/파일 기반 구현으로 시작하고, 추후 DB로 교체하면 프런트엔드는 변경 없이 동작합니다.
+
+### 환경 변수
+
+프런트엔드 `.env`에 다음을 설정합니다.
+
+```
+VITE_API_URL=http://localhost:3001
+VITE_USE_REMOTE_MENU=true
+```
+
+설정이 없으면 로컬스토리지로 동작합니다.
+
+### 마이그레이션 전략
+
+- 스키마 버전 필드를 `MenuProperties`에 추가(필요 시): `version`으로 변경 추적
+- 서버 응답과 로컬 기본값을 병합하여 신뢰할 수 있는 초기 상태 보장
+- 실패 시 폴백(원격 저장 실패시 로컬 유지)으로 사용자 경험 보호
 
 PickLab은 NestJS 백엔드와 React(Vite) 프론트엔드로 구성된 풀스택 웹 서비스입니다.
 
