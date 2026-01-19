@@ -257,68 +257,61 @@ export default function EatHome() {
             {currentRecommendation.step1 && (
               <div>
                 <h3 className="text-xl font-bold text-white mb-4">2️⃣ 세부 카테고리</h3>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {step2Options.map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => {
-                        setRecommendations((prev) => ({
-                          ...prev,
-                          [activeTab]: { ...prev[activeTab], step2: opt, step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
-                        }));
-                        setErrorMessage('');
-                      }}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
-                        currentRecommendation.step2 === opt
-                          ? 'bg-green-500 text-white shadow-lg'
-                          : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-
-                {/* 해장용 체크박스 - 가로 배치 */}
-                {currentRecommendation.step2 && (
-                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <div className="bg-gray-700/50 hover:bg-gray-700/70 transition-colors rounded-lg p-4 border border-gray-600 max-w-2xl">
-                      <p className="text-gray-300 font-semibold text-sm mb-3">🍜 해장용이신가요?</p>
-                      <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={currentRecommendation.isHangover === true}
-                            onChange={() => {
-                              setRecommendations((prev) => ({
-                                ...prev,
-                                [activeTab]: { ...prev[activeTab], isHangover: true },
-                              }));
-                              setErrorMessage('');
-                            }}
-                            className="w-4 h-4 cursor-pointer accent-orange-400"
-                          />
-                          <span className="text-gray-300 text-sm group-hover:text-white">예 (해장용)</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={currentRecommendation.isHangover === false && currentRecommendation.step2 !== ''}
-                            onChange={() => {
-                              setRecommendations((prev) => ({
-                                ...prev,
-                                [activeTab]: { ...prev[activeTab], isHangover: false },
-                              }));
-                              setErrorMessage('');
-                            }}
-                            className="w-4 h-4 cursor-pointer accent-blue-400"
-                          />
-                          <span className="text-gray-300 text-sm group-hover:text-white">아니오 (일반)</span>
-                        </label>
-                      </div>
-                    </div>
+                <div className="flex items-end gap-2 mb-4">
+                  {/* 왼쪽: 세부 카테고리 버튼들 */}
+                  <div className="flex flex-wrap gap-2">
+                    {step2Options.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => {
+                          setRecommendations((prev) => ({
+                            ...prev,
+                            [activeTab]: { ...prev[activeTab], step2: opt, step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
+                          }));
+                          setErrorMessage('');
+                        }}
+                        className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                          currentRecommendation.step2 === opt
+                            ? 'bg-green-500 text-white shadow-lg'
+                            : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
                   </div>
-                )}
+
+                  {/* 바로 옆: 해장용 체크박스 */}
+                  {currentRecommendation.step2 && activeTab !== 'recipe' && (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                      <label className={`flex items-center gap-2 cursor-pointer group px-4 py-2 rounded-lg transition-all duration-300 ${
+                        currentRecommendation.isHangover === true
+                          ? 'bg-orange-500/20 border border-orange-400/50 animate-bounce'
+                          : 'bg-gray-700/30 border border-gray-600/50 hover:bg-gray-700/50'
+                      }`}>
+                        <input
+                          type="checkbox"
+                          checked={currentRecommendation.isHangover === true}
+                          onChange={() => {
+                            setRecommendations((prev) => ({
+                              ...prev,
+                              [activeTab]: { ...prev[activeTab], isHangover: !currentRecommendation.isHangover },
+                            }));
+                            setErrorMessage('');
+                          }}
+                          className="w-4 h-4 cursor-pointer accent-orange-400"
+                        />
+                        <span className={`text-sm font-semibold transition-colors duration-300 ${
+                          currentRecommendation.isHangover === true
+                            ? 'text-orange-300'
+                            : 'text-gray-300 group-hover:text-white'
+                        }`}>
+                          {activeTab === 'lunch' ? '🍜 해장용이신가요?' : '🍺 안주용이신가요?'}
+                        </span>
+                      </label>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
