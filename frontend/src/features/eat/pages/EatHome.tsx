@@ -32,6 +32,7 @@ export default function EatHome() {
     dinner: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
     recipe: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
   });
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // 각 단계별 선택지
   const lunchOptions = ['한식', '양식', '중식', '일식', '카페'];
@@ -146,7 +147,7 @@ export default function EatHome() {
   const handleGetRecommendation = () => {
     const current = recommendations[activeTab];
     if (!current.step1 || !current.step2 || !current.step3 || !current.step4 || !current.step5) {
-      alert('모든 단계를 선택해주세요!');
+      setErrorMessage('모든 단계를 선택해주세요!');
       return;
     }
 
@@ -162,10 +163,11 @@ export default function EatHome() {
     const recommendedFoods = getRandomFoods(filteredFoods, 3);
 
     if (recommendedFoods.length === 0) {
-      alert('해당 조건의 음식이 없습니다. 다른 선택지를 시도해주세요!');
+      setErrorMessage('해당 조건의 음식이 없습니다. 다른 선택지를 시도해주세요!');
       return;
     }
 
+    setErrorMessage('');
     setRecommendations((prev) => ({
       ...prev,
       [activeTab]: {
@@ -232,12 +234,13 @@ export default function EatHome() {
                 {step1Options.map((opt) => (
                   <button
                     key={opt}
-                    onClick={() =>
+                    onClick={() => {
                       setRecommendations((prev) => ({
                         ...prev,
                         [activeTab]: { ...prev[activeTab], step1: opt, step2: '', step3: '', step4: '', step5: '', recommendedFoods: [] },
-                      }))
-                    }
+                      }));
+                      setErrorMessage('');
+                    }}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
                       currentRecommendation.step1 === opt
                         ? 'bg-blue-500 text-white shadow-lg'
@@ -263,6 +266,7 @@ export default function EatHome() {
                           ...prev,
                           [activeTab]: { ...prev[activeTab], step2: opt, step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
                         }));
+                        setErrorMessage('');
                       }}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
                         currentRecommendation.step2 === opt
@@ -288,12 +292,13 @@ export default function EatHome() {
                         <p className="text-white font-bold text-lg mb-4">🍜 해장용이신가요?</p>
                         <div className="flex gap-3">
                           <button
-                            onClick={() =>
+                            onClick={() => {
                               setRecommendations((prev) => ({
                                 ...prev,
                                 [activeTab]: { ...prev[activeTab], isHangover: true },
-                              }))
-                            }
+                              }));
+                              setErrorMessage('');
+                            }}
                             className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all ${
                               currentRecommendation.isHangover === true
                                 ? 'bg-red-500 text-white shadow-lg'
@@ -303,12 +308,13 @@ export default function EatHome() {
                             예 (해장용)
                           </button>
                           <button
-                            onClick={() =>
+                            onClick={() => {
                               setRecommendations((prev) => ({
                                 ...prev,
                                 [activeTab]: { ...prev[activeTab], isHangover: false },
-                              }))
-                            }
+                              }));
+                              setErrorMessage('');
+                            }}
                             className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all ${
                               currentRecommendation.isHangover === false && currentRecommendation.step2 !== ''
                                 ? 'bg-blue-500 text-white shadow-lg'
@@ -333,12 +339,13 @@ export default function EatHome() {
                   {tasteOptions.map((opt) => (
                     <button
                       key={opt}
-                      onClick={() =>
+                      onClick={() => {
                         setRecommendations((prev) => ({
                           ...prev,
                           [activeTab]: { ...prev[activeTab], step3: opt, step4: '', step5: '', recommendedFoods: [] },
-                        }))
-                      }
+                        }));
+                        setErrorMessage('');
+                      }}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
                         currentRecommendation.step3 === opt
                           ? 'bg-yellow-500 text-white shadow-lg'
@@ -360,12 +367,13 @@ export default function EatHome() {
                   {priceOptions.map((opt) => (
                     <button
                       key={opt}
-                      onClick={() =>
+                      onClick={() => {
                         setRecommendations((prev) => ({
                           ...prev,
                           [activeTab]: { ...prev[activeTab], step4: opt, step5: '', recommendedFoods: [] },
-                        }))
-                      }
+                        }));
+                        setErrorMessage('');
+                      }}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
                         currentRecommendation.step4 === opt
                           ? 'bg-purple-500 text-white shadow-lg'
@@ -387,12 +395,13 @@ export default function EatHome() {
                   {featureOptions.map((opt) => (
                     <button
                       key={opt}
-                      onClick={() =>
+                      onClick={() => {
                         setRecommendations((prev) => ({
                           ...prev,
                           [activeTab]: { ...prev[activeTab], step5: opt, recommendedFoods: [] },
-                        }))
-                      }
+                        }));
+                        setErrorMessage('');
+                      }}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
                         currentRecommendation.step5 === opt
                           ? 'bg-pink-500 text-white shadow-lg'
@@ -423,13 +432,22 @@ export default function EatHome() {
           </div>
         </div>
 
-        {/* 추천 음식 카드 그리드 */}
-        {currentRecommendation.recommendedFoods.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-white mb-8 text-center">
-              당신을 위한 추천 음식 🎯
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 추천 결과 영역 */}
+        <div className="mb-12">
+          {/* 에러 메시지 */}
+          {errorMessage && (
+            <div className="mb-8 p-6 bg-red-500/20 border-2 border-red-500 rounded-2xl animate-in fade-in duration-300">
+              <p className="text-red-300 font-semibold text-lg">⚠️ {errorMessage}</p>
+            </div>
+          )}
+
+          {/* 추천 음식 카드 그리드 */}
+          {currentRecommendation.recommendedFoods.length > 0 && (
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-8 text-center">
+                당신을 위한 추천 음식 🎯
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {currentRecommendation.recommendedFoods.map((food, index) => (
                 <div
                   key={`${food.id}-${index}`}
@@ -470,21 +488,22 @@ export default function EatHome() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* 빈 상태 메시지 */}
-        {currentRecommendation.recommendedFoods.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">😋</div>
-            <p className="text-xl text-gray-400 mb-4">
-              아직 추천을 받지 않았어요
-            </p>
-            <p className="text-gray-500">
-              위에서 원하는 종류를 선택하고 "추천받기" 버튼을 눌러주세요!
-            </p>
-          </div>
-        )}
+          {/* 빈 상태 메시지 */}
+          {currentRecommendation.recommendedFoods.length === 0 && !errorMessage && (
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">😋</div>
+              <p className="text-xl text-gray-400 mb-4">
+                아직 추천을 받지 않았어요
+              </p>
+              <p className="text-gray-500">
+                위에서 원하는 종류를 선택하고 "추천받기" 버튼을 눌러주세요!
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* 하단 CTA */}
         <div className="mt-16 text-center">
