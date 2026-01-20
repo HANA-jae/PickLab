@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import TestLayout from './TestLayout';
+import QuizLayout from './QuizLayout';
 
-interface KnowledgeTestProps {
+interface KnowledgeQuizProps {
   onBack: () => void;
 }
 
-export default function KnowledgeTest({ onBack }: KnowledgeTestProps) {
+export default function KnowledgeQuiz({ onBack }: KnowledgeQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
@@ -58,16 +58,16 @@ export default function KnowledgeTest({ onBack }: KnowledgeTestProps) {
     setAnswered(false);
   };
 
-  const isTestComplete = currentQuestion === questions.length - 1 && answered;
+  const isQuizComplete = currentQuestion === questions.length - 1 && answered;
 
   return (
-    <TestLayout
+    <QuizLayout
       onBack={onBack}
       title="지식 퀴즈"
       emoji="📚"
       description="다양한 분야의 지식을 테스트해보세요"
     >
-      {!isTestComplete ? (
+      {!isQuizComplete ? (
         <div className="space-y-6">
           <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
             <p className="text-gray-300 text-sm mb-1">문제 {currentQuestion + 1}/{questions.length}</p>
@@ -132,6 +132,6 @@ export default function KnowledgeTest({ onBack }: KnowledgeTestProps) {
           </button>
         </div>
       )}
-    </TestLayout>
+    </QuizLayout>
   );
 }

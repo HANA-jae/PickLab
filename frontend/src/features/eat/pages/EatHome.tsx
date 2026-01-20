@@ -1,480 +1,478 @@
 import { useState, useEffect } from 'react';
-import type { TabType, FoodItem } from '../../../types';
-import { useMenuProperties } from '../../../hooks/useMenuProperties';
-
-interface RecommendationState {
-  step1: string; // 종류
-  step2: string; // 세부
-  step3: string; // 맛
-  step4: string; // 가격
-  step5: string; // 특징
-  isHangover: boolean; // 해장 여부
-  recommendedFoods: FoodItem[];
-}
+import { contentsApi } from '../../../services/api';
+import { Food, CommonCode, CommonMaster } from '../../../types';
 
 export default function EatHome() {
-  const [activeTab, setActiveTab] = useState<TabType>('lunch');
-  const [recommendations, setRecommendations] = useState<Record<TabType, RecommendationState>>({
-    lunch: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
-    dinner: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
-    recipe: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
-  });
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const { properties } = useMenuProperties();
+  const [foods, setFoods] = useState<Food[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedFood, setSelectedFood] = useState<Food | null>(null);
+  const [recommendedFood, setRecommendedFood] = useState<Food | null>(null);
+  const [noResultMessage, setNoResultMessage] = useState<boolean>(false);
+  
+  // 카테고리 필터 상태
+  const [categories1, setCategories1] = useState<CommonCode[]>([]);
+  const [categories2, setCategories2] = useState<CommonCode[]>([]);
+  const [categories3, setCategories3] = useState<CommonCode[]>([]);
+  const [categories4, setCategories4] = useState<CommonCode[]>([]);
+  const [categories5, setCategories5] = useState<CommonCode[]>([]);
+  
+  const [selectedCategory1, setSelectedCategory1] = useState<string | null>(null);
+  const [selectedCategory2, setSelectedCategory2] = useState<string | null>(null);
+  const [selectedCategory3, setSelectedCategory3] = useState<string | null>(null);
+  const [selectedCategory4, setSelectedCategory4] = useState<string | null>(null);
+  const [selectedCategory5, setSelectedCategory5] = useState<string | null>(null);
 
-  // properties 변경 시 에러 초기화
+  // 카테고리 메타 정보 (masterDesc 사용)
+  const [category1Title, setCategory1Title] = useState<string>('카테고리 1');
+  const [category2Title, setCategory2Title] = useState<string>('카테고리 2');
+  const [category3Title, setCategory3Title] = useState<string>('카테고리 3');
+  const [category4Title, setCategory4Title] = useState<string>('카테고리 4');
+  const [category5Title, setCategory5Title] = useState<string>('카테고리 5');
+
+  // 초기 데이터 로드 (카테고리만)
   useEffect(() => {
-    setErrorMessage('');
-  }, [properties.updatedAt]);
+    loadCategories();
+  }, []);
 
-  // 현재 탭의 추천 상태
-  const currentRecommendation = recommendations[activeTab];
+  const loadCategories = async () => {
+    try {
+      // Category 1과 master 정보 로드
+      const [cat1Data, masterData] = await Promise.all([
+        contentsApi.getCommonCodes('CATEGORY1'),
+        contentsApi.getCommonMaster('CATEGORY1')
+      ]);
+      setCategories1(cat1Data as CommonCode[]);
+      if (masterData && (masterData as CommonMaster).masterDesc) {
+        setCategory1Title((masterData as CommonMaster).masterDesc!);
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+    }
+  };
 
-  // 탭 변경 시 현재 탭의 상태 리셋
-  const handleTabChange = (tab: TabType) => {
-    if (activeTab === tab) {
-      // 같은 탭을 클릭했으면 상태 리셋
-      setRecommendations((prev) => ({
-        ...prev,
-        [tab]: { step1: '', step2: '', step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
-      }));
-      setErrorMessage('');
+  // Category 1 선택 시 음식 로드, 하위 카테고리 초기화
+  useEffect(() => {
+    if (selectedCategory1) {
+      setLoading(true);
+      loadFoods();
     } else {
-      // 다른 탭으로 변경
-      setActiveTab(tab);
+      setFoods([]);
+      setCategories2([]);
+      setSelectedCategory2(null);
+      setCategories3([]);
+      setSelectedCategory3(null);
+      setCategories4([]);
+      setSelectedCategory4(null);
+      setCategories5([]);
+      setSelectedCategory5(null);
     }
-  };
+  }, [selectedCategory1]);
 
-  // 다른 탭으로 변경될 때
+  // Category 2 선택 해제 시 하위 카테고리 초기화
   useEffect(() => {
-    setErrorMessage('');
-  }, [activeTab]);
-  const lunchOptions = ['한식', '양식', '중식', '일식', '카페'];
-  const dinnerOptions = ['고기', '해산물', '채식', '이탈리안', '기타'];
-  const recipeOptions = ['간단한 요리', '밥요리', '면요리', '스프', '간식'];
+    if (!selectedCategory2) {
+      setSelectedCategory3(null);
+      setSelectedCategory4(null);
+      setSelectedCategory5(null);
+    }
+  }, [selectedCategory2]);
 
-  const tasteOptions = ['순한맛', '중간맛', '매운맛', '짭짤한맛', '상큼한맛'];
-  const priceOptions = ['저가', '중가', '고가'];
-  const featureOptions = ['빠르게', '건강식', '푸짐한', '가벼운', '특별한'];
+  // Category 3 선택 해제 시 하위 카테고리 초기화
+  useEffect(() => {
+    if (!selectedCategory3) {
+      setSelectedCategory4(null);
+      setSelectedCategory5(null);
+    }
+  }, [selectedCategory3]);
 
-  // 각 1단계 옵션별 2단계 선택지
-  const lunchSubOptions: Record<string, string[]> = {
-    '한식': ['국/찌개', '밥', '반찬', '튀김', '기타'],
-    '양식': ['파스타', '고기', '해산물', '치즈', '기타'],
-    '중식': ['면', '밥', '탕수육', '짜장/짬뽕', '기타'],
-    '일식': ['우동/라멘', '회', '돈카츠', '스시', '기타'],
-    '카페': ['음료', '빵', '샌드위치', '디저트', '기타'],
-  };
+  // Category 4 선택 해제 시 하위 카테고리 초기화
+  useEffect(() => {
+    if (!selectedCategory4) {
+      setSelectedCategory5(null);
+    }
+  }, [selectedCategory4]);
 
-  const dinnerSubOptions: Record<string, string[]> = {
-    '고기': ['소고기', '돼지고기', '닭고기', '양고기', '기타'],
-    '해산물': ['생선', '게/새우', '조개', '오징어', '기타'],
-    '채식': ['야채', '두부', '버섯', '나물', '기타'],
-    '이탈리안': ['파스타', '리조또', '피자', '스프', '기타'],
-    '기타': ['국/탕', '곡물', '계란', '튀김', '기타'],
-  };
+  // 카테고리 선택 변경 시 추천 결과 초기화
+  useEffect(() => {
+    setRecommendedFood(null);
+    setNoResultMessage(false);
+  }, [selectedCategory1, selectedCategory2, selectedCategory3, selectedCategory4, selectedCategory5]);
 
-  const recipeSubOptions: Record<string, string[]> = {
-    '간단한 요리': ['계란', '야채', '고기', '생선', '기타'],
-    '밥요리': ['볶음밥', '덮밥', '주먹밥', '김밥', '기타'],
-    '면요리': ['파스타', '우동', '스파게티', '국수', '기타'],
-    '스프': ['국', '탕', '스프', '수프', '기타'],
-    '간식': ['튀김', '계란말이', '무침', '구이', '기타'],
-  };
-
-  // 모든 메뉴는 전역 프로퍼티에서 관리/사용
-  const allFoods: Record<TabType, FoodItem[]> = properties.menus;
-
-  const getStep1Options = () => {
-    switch (activeTab) {
-      case 'lunch':
-        return lunchOptions;
-      case 'dinner':
-        return dinnerOptions;
-      case 'recipe':
-        return recipeOptions;
-      default:
-        return [];
+  const loadFoods = async () => {
+    try {
+      const response = await contentsApi.getFoods();
+      // 사용 중인 음식만 필터링하고 order 순으로 정렬
+      const activeFoods = (response as Food[])
+        .filter(f => f.useYn === 'Y')
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+      setFoods(activeFoods);
+      // 음식 로드 후 모든 카테고리 로드
+      await loadAllCategories(activeFoods);
+    } catch (error) {
+      console.error('Failed to load foods:', error);
+      setFoods([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getSubOptions = () => {
-    const step1 = recommendations[activeTab].step1;
-    if (!step1) return [];
+  const loadAllCategories = async (foodsList: Food[]) => {
+    try {
+      // 모든 카테고리 데이터를 병렬로 로드
+      const [
+        [cat2Data, master2Data],
+        [cat3Data, master3Data],
+        [cat4Data, master4Data],
+        [cat5Data, master5Data]
+      ] = await Promise.all([
+        Promise.all([contentsApi.getCommonCodes('CATEGORY2'), contentsApi.getCommonMaster('CATEGORY2')]),
+        Promise.all([contentsApi.getCommonCodes('CATEGORY3'), contentsApi.getCommonMaster('CATEGORY3')]),
+        Promise.all([contentsApi.getCommonCodes('CATEGORY4'), contentsApi.getCommonMaster('CATEGORY4')]),
+        Promise.all([contentsApi.getCommonCodes('CATEGORY5'), contentsApi.getCommonMaster('CATEGORY5')])
+      ]);
 
-    switch (activeTab) {
-      case 'lunch':
-        return lunchSubOptions[step1] || [];
-      case 'dinner':
-        return dinnerSubOptions[step1] || [];
-      case 'recipe':
-        return recipeSubOptions[step1] || [];
-      default:
-        return [];
+      // Category 2: DB에 정의된 모든 코드 그대로 표시
+      setCategories2(cat2Data as CommonCode[]);
+      if (master2Data && (master2Data as CommonMaster).masterDesc) {
+        setCategory2Title((master2Data as CommonMaster).masterDesc!);
+      }
+
+      // Category 3: DB에 정의된 모든 코드 그대로 표시
+      setCategories3(cat3Data as CommonCode[]);
+      if (master3Data && (master3Data as CommonMaster).masterDesc) {
+        setCategory3Title((master3Data as CommonMaster).masterDesc!);
+      }
+
+      // Category 4: DB에 정의된 모든 코드 그대로 표시
+      setCategories4(cat4Data as CommonCode[]);
+      if (master4Data && (master4Data as CommonMaster).masterDesc) {
+        setCategory4Title((master4Data as CommonMaster).masterDesc!);
+      }
+
+      // Category 5: DB에 정의된 모든 코드 그대로 표시
+      setCategories5(cat5Data as CommonCode[]);
+      if (master5Data && (master5Data as CommonMaster).masterDesc) {
+        setCategory5Title((master5Data as CommonMaster).masterDesc!);
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
     }
   };
 
-  const getRandomFoods = (foods: FoodItem[], count: number = 3): FoodItem[] => {
-    const shuffled = [...foods].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
+  // 필터링된 음식 목록
+  const filteredFoods = foods.filter(food => {
+    if (selectedCategory1 && food.category1 !== selectedCategory1) return false;
+    if (selectedCategory2 && food.category2 !== selectedCategory2) return false;
+    if (selectedCategory3 && food.category3 !== selectedCategory3) return false;
+    if (selectedCategory4 && food.category4 !== selectedCategory4) return false;
+    if (selectedCategory5 && food.category5 !== selectedCategory5) return false;
+    return true;
+  });
+
+  // 전체 보기 (필터 초기화)
+  const resetFilters = () => {
+    setSelectedCategory1(null);
+    setSelectedCategory2(null);
+    setSelectedCategory3(null);
+    setSelectedCategory4(null);
+    setSelectedCategory5(null);
   };
-
-  const handleGetRecommendation = () => {
-    const current = recommendations[activeTab];
-    if (!current.step1 || !current.step2 || !current.step3 || !current.step4 || !current.step5) {
-      setErrorMessage('모든 단계를 선택해주세요!');
-      return;
-    }
-
-    // 프로퍼티 기반 전체 음식
-    const allAvailableFoods = allFoods[activeTab];
-
-    const filteredFoods = allAvailableFoods.filter(
-      (food) =>
-        food.category === current.step1 &&
-        food.subCategory === current.step2 &&
-        food.taste === current.step3 &&
-        food.priceRange === current.step4 &&
-        food.feature === current.step5
-    );
-    const recommendedFoods = getRandomFoods(filteredFoods, 3);
-
-    if (recommendedFoods.length === 0) {
-      setErrorMessage('해당 조건의 음식이 없습니다. 다른 선택지를 시도해주세요!');
-      return;
-    }
-
-    setErrorMessage('');
-    setRecommendations((prev) => ({
-      ...prev,
-      [activeTab]: {
-        ...prev[activeTab],
-        recommendedFoods,
-      },
-    }));
-  };
-
-  const getTabLabel = (tab: TabType) => {
-    switch (tab) {
-      case 'lunch':
-        return '🌞 점심 추천';
-      case 'dinner':
-        return '🌙 저녁 추천';
-      case 'recipe':
-        return '👨‍🍳 요리 추천';
-      default:
-        return '';
-    }
-  };
-
-  const step1Options = getStep1Options();
-  const step2Options = getSubOptions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-800 to-gray-950 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        {/* 헤더 */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-16 px-4">
+      <div className="max-w-7xl mx-auto">
+        {/* 타이틀 */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 bg-clip-text text-transparent mb-4">
-            🍔 음식 추천
-          </h1>
-          <p className="text-xl text-gray-300">
-            오늘은 뭐 먹을까요? 편하게 추천받아보세요!
-          </p>
+          <div className="inline-block">
+            <h1 className="text-6xl font-black tracking-tight mb-3" style={{ fontFamily: '"Noto Sans KR", sans-serif', letterSpacing: '-0.02em' }}>
+              <span className="bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 bg-clip-text text-transparent drop-shadow-lg">
+                오늘은 뭐 먹을까?
+              </span>
+            </h1>
+            <div className="h-1 bg-gradient-to-r from-transparent via-slate-400 to-transparent rounded-full"></div>
+          </div>
+          <p className="text-slate-400 text-lg mt-4">당신의 취향을 선택하면 완벽한 메뉴를 추천해드릴게요</p>
         </div>
 
-        {/* 탭 버튼 */}
-        <div className="flex flex-wrap gap-3 justify-center mb-12">
-          {(['lunch', 'dinner', 'recipe'] as TabType[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => handleTabChange(tab)}
-              className={`px-6 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${
-                activeTab === tab
-                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xl shadow-orange-500/50 scale-105 ring-2 ring-orange-400/50'
-                  : 'bg-gray-800/50 backdrop-blur-sm text-gray-300 hover:bg-gray-700/50 hover:text-white border border-gray-700 hover:border-gray-600'
-              }`}
-            >
-              {getTabLabel(tab)}
-            </button>
-          ))}
-        </div>
-
-        {/* 선택지 섹션 */}
-        <div className="mb-12">
-          <div className="bg-gradient-to-br from-gray-800/90 via-gray-800/80 to-gray-700/90 backdrop-blur-md rounded-2xl p-8 border border-gray-600/50 shadow-2xl space-y-8">
-            {/* Step 1 */}
-            <div>
-              <h3 className="text-xl font-bold text-white mb-4">1️⃣ 종류</h3>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {step1Options.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => {
-                      setRecommendations((prev) => ({
-                        ...prev,
-                        [activeTab]: { ...prev[activeTab], step1: opt, step2: '', step3: '', step4: '', step5: '', recommendedFoods: [] },
-                      }));
-                      setErrorMessage('');
-                    }}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
-                      currentRecommendation.step1 === opt
-                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/50 ring-2 ring-blue-400/50 scale-105'
-                        : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400">음식 목록을 불러오는 중...</p>
+          </div>
+        ) : (
+          <>
+            {/* 카테고리 필터 */}
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 mb-10 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <span className="text-3xl">{'>'}</span>
+                  카테고리 선택
+                </h2>
+                <button
+                  onClick={resetFilters}
+                  className="px-5 py-2.5 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-medium rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+                >
+                  ✕ 초기화
+                </button>
               </div>
-            </div>
 
-            {/* Step 2 */}
-            {currentRecommendation.step1 && (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4">2️⃣ 세부 카테고리</h3>
-                <div className="flex items-end gap-2 mb-4">
-                  {/* 왼쪽: 세부 카테고리 버튼들 */}
-                  <div className="flex flex-wrap gap-2">
-                    {step2Options.map((opt) => (
+              {/* Category 1 */}
+              {categories1.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-3">{category1Title}</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {categories1.filter(c => c.useYn === 'Y').map(cat => (
                       <button
-                        key={opt}
-                        onClick={() => {
-                          setRecommendations((prev) => ({
-                            ...prev,
-                            [activeTab]: { ...prev[activeTab], step2: opt, step3: '', step4: '', step5: '', isHangover: false, recommendedFoods: [] },
-                          }));
-                          setErrorMessage('');
-                        }}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
-                          currentRecommendation.step2 === opt
-                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/50 ring-2 ring-green-400/50 scale-105'
-                            : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
+                        key={cat.detailCode}
+                        onClick={() => setSelectedCategory1(
+                          selectedCategory1 === cat.detailCode ? null : cat.detailCode
+                        )}
+                        className={`px-5 py-2.5 rounded-xl font-medium transition-all duration-300 shadow-lg ${
+                          selectedCategory1 === cat.detailCode
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white scale-105 shadow-amber-500/50'
+                            : 'bg-slate-700/50 text-gray-300 hover:bg-slate-600/70 hover:scale-105'
                         }`}
                       >
-                        {opt}
+                        {cat.detailName}
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
 
-                  {/* 바로 옆: 해장용 체크박스 */}
-                  {currentRecommendation.step2 && activeTab !== 'recipe' && (
-                    <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                      <label className={`flex items-center gap-2 cursor-pointer group px-4 py-2 rounded-lg transition-all duration-300 ${
-                        currentRecommendation.isHangover === true
-                          ? 'bg-orange-500/20 border border-orange-400/50 animate-bounce'
-                          : 'bg-gray-700/30 border border-gray-600/50 hover:bg-gray-700/50'
-                      }`}>
-                        <input
-                          type="checkbox"
-                          checked={currentRecommendation.isHangover === true}
-                          onChange={() => {
-                            setRecommendations((prev) => ({
-                              ...prev,
-                              [activeTab]: { ...prev[activeTab], isHangover: !currentRecommendation.isHangover },
-                            }));
-                            setErrorMessage('');
-                          }}
-                          className="w-4 h-4 cursor-pointer accent-orange-400"
-                        />
-                        <span className={`text-sm font-semibold transition-colors duration-300 ${
-                          currentRecommendation.isHangover === true
-                            ? 'text-orange-300'
-                            : 'text-gray-300 group-hover:text-white'
-                        }`}>
-                          {activeTab === 'lunch' ? '🍜 해장용이신가요?' : '🍺 안주용이신가요?'}
-                        </span>
-                      </label>
+              {/* Category 2 (Category 1 선택 시에만 표시) */}
+              {selectedCategory1 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-400 mb-2">
+                    {category2Title} {categories2.length === 0 && <span className="text-gray-500">(옵션 없음)</span>}
+                  </h3>
+                  {categories2.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {categories2.filter(c => c.useYn === 'Y').map(cat => (
+                        <button
+                          key={cat.detailCode}
+                          onClick={() => setSelectedCategory2(
+                            selectedCategory2 === cat.detailCode ? null : cat.detailCode
+                          )}
+                          className={`px-4 py-2 rounded-lg transition-colors ${
+                            selectedCategory2 === cat.detailCode
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          {cat.detailName}
+                        </button>
+                      ))}
                     </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">선택 가능한 옵션이 없습니다</p>
                   )}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Step 3 */}
-            {currentRecommendation.step2 && currentRecommendation.isHangover !== undefined && (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4">3️⃣ 맛</h3>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {tasteOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => {
-                        setRecommendations((prev) => ({
-                          ...prev,
-                          [activeTab]: { ...prev[activeTab], step3: opt, step4: '', step5: '', recommendedFoods: [] },
-                        }));
-                        setErrorMessage('');
-                      }}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
-                        currentRecommendation.step3 === opt
-                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg shadow-yellow-500/50 ring-2 ring-yellow-400/50 scale-105'
-                          : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
+              {/* Category 3 (Category 2 선택 시에만 표시) */}
+              {selectedCategory2 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-400 mb-2">
+                    {category3Title} {categories3.length === 0 && <span className="text-gray-500">(옵션 없음)</span>}
+                  </h3>
+                  {categories3.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {categories3.filter(c => c.useYn === 'Y').map(cat => (
+                        <button
+                          key={cat.detailCode}
+                          onClick={() => setSelectedCategory3(
+                            selectedCategory3 === cat.detailCode ? null : cat.detailCode
+                          )}
+                          className={`px-4 py-2 rounded-lg transition-colors ${
+                            selectedCategory3 === cat.detailCode
+                              ? 'bg-red-500 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          {cat.detailName}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">선택 가능한 옵션이 없습니다</p>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Step 4 */}
-            {currentRecommendation.step3 && (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4">4️⃣ 가격</h3>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {priceOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => {
-                        setRecommendations((prev) => ({
-                          ...prev,
-                          [activeTab]: { ...prev[activeTab], step4: opt, step5: '', recommendedFoods: [] },
-                        }));
-                        setErrorMessage('');
-                      }}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
-                        currentRecommendation.step4 === opt
-                          ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white shadow-lg shadow-purple-500/50 ring-2 ring-purple-400/50 scale-105'
-                          : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
+              {/* Category 4 (Category 3 선택 시에만 표시) */}
+              {selectedCategory3 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-400 mb-2">
+                    {category4Title} {categories4.length === 0 && <span className="text-gray-500">(옵션 없음)</span>}
+                  </h3>
+                  {categories4.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {categories4.filter(c => c.useYn === 'Y').map(cat => (
+                        <button
+                          key={cat.detailCode}
+                          onClick={() => setSelectedCategory4(
+                            selectedCategory4 === cat.detailCode ? null : cat.detailCode
+                          )}
+                          className={`px-4 py-2 rounded-lg transition-colors ${
+                            selectedCategory4 === cat.detailCode
+                              ? 'bg-purple-500 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          {cat.detailName}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">선택 가능한 옵션이 없습니다</p>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Step 5 */}
-            {currentRecommendation.step4 && (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4">5️⃣ 특징</h3>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {featureOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => {
-                        setRecommendations((prev) => ({
-                          ...prev,
-                          [activeTab]: { ...prev[activeTab], step5: opt, recommendedFoods: [] },
-                        }));
-                        setErrorMessage('');
-                      }}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
-                        currentRecommendation.step5 === opt
-                          ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/50 ring-2 ring-pink-400/50 scale-105'
-                          : 'bg-gray-700/50 backdrop-blur-sm text-gray-300 hover:bg-gray-600/70 hover:text-white hover:shadow-md border border-gray-600 hover:border-gray-500'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
+              {/* Category 5 (Category 4 선택 시에만 표시) */}
+              {selectedCategory4 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-400 mb-2">
+                    {category5Title} {categories5.length === 0 && <span className="text-gray-500">(옵션 없음)</span>}
+                  </h3>
+                  {categories5.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {categories5.filter(c => c.useYn === 'Y').map(cat => (
+                        <button
+                          key={cat.detailCode}
+                          onClick={() => setSelectedCategory5(
+                            selectedCategory5 === cat.detailCode ? null : cat.detailCode
+                          )}
+                          className={`px-4 py-2 rounded-lg transition-colors ${
+                            selectedCategory5 === cat.detailCode
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          {cat.detailName}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">선택 가능한 옵션이 없습니다</p>
+                  )}
                 </div>
+              )}
+            </div>
 
-                {/* 선택 요약 */}
-                <div className="mb-6 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/40 rounded-xl backdrop-blur-sm shadow-lg">
-                  <p className="text-white text-sm">
-                    <span className="font-semibold">선택 요약:</span> {currentRecommendation.step1} → {currentRecommendation.step2} → {currentRecommendation.step3} → {currentRecommendation.step4} → {currentRecommendation.step5}
-                  </p>
-                </div>
-
-                {/* 추천받기 버튼 */}
+            {/* 추천받기 버튼 (5레벨까지 선택 시) */}
+            {selectedCategory5 && (
+              <div className="flex justify-center mt-10">
                 <button
-                  onClick={handleGetRecommendation}
-                  className="w-full px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-xl shadow-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/50"
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      setRecommendedFood(null);
+                      setNoResultMessage(false);
+                      
+                      // 카테고리 조건으로 DB에서 검색
+                      const result = await contentsApi.getFoodsByCategories({
+                        category1: selectedCategory1 || undefined,
+                        category2: selectedCategory2 || undefined,
+                        category3: selectedCategory3 || undefined,
+                        category4: selectedCategory4 || undefined,
+                        category5: selectedCategory5 || undefined,
+                      });
+                      
+                      const foods = result as Food[];
+                      if (foods.length > 0) {
+                        // 랜덤으로 하나 선택
+                        const randomFood = foods[Math.floor(Math.random() * foods.length)];
+                        setRecommendedFood(randomFood);
+                      } else {
+                        setNoResultMessage(true);
+                      }
+                    } catch (error) {
+                      console.error('Failed to get food recommendation:', error);
+                      setNoResultMessage(true);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="group relative px-12 py-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:via-orange-400 hover:to-rose-400 text-white font-bold text-2xl rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 animate-bounce overflow-hidden"
                 >
-                  추천받기 🎉
+                  <span className="relative z-10 flex items-center gap-3">
+                    <span className="text-3xl">🎲</span>
+                    음식 추천받기!
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                 </button>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* 추천 결과 영역 */}
-        <div className="mb-12">
-          {/* 에러 메시지 */}
-          {errorMessage && (
-            <div className="mb-8 p-6 bg-red-500/20 border-2 border-red-500 rounded-2xl animate-in fade-in duration-300">
-              <p className="text-red-300 font-semibold text-lg">⚠️ {errorMessage}</p>
-            </div>
-          )}
+            {/* 추천 결과 표시 */}
+            {noResultMessage && (
+              <div className="mt-8 bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-2 border-purple-500 rounded-2xl p-8 text-center">
+                <div className="text-6xl mb-4">😢</div>
+                <h3 className="text-2xl font-bold text-white mb-3">죄송해요ㅠ.ㅠ</h3>
+                <p className="text-lg text-gray-300 mb-4">결과를 찾지 못했어요.</p>
+                <p className="text-base text-gray-400">혹시 어떤 요리를 기대했는지 저희에게 알려주실 수 있을까요?</p>
+              </div>
+            )}
 
-          {/* 추천 음식 카드 그리드 */}
-          {currentRecommendation.recommendedFoods.length > 0 && (
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 bg-clip-text text-transparent mb-8 text-center">
-                당신을 위한 추천 음식 🎯
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {currentRecommendation.recommendedFoods.map((food, index) => (
-                <div
-                  key={`${food.id}-${index}`}
-                  className="group relative rounded-2xl bg-gradient-to-br from-gray-800/90 via-gray-800/80 to-gray-700/90 backdrop-blur-md p-8 border border-orange-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/50 hover:border-orange-400 cursor-pointer transform hover:scale-105 hover:ring-2 hover:ring-orange-400/50"
-                >
-                  {/* 순위 배지 */}
-                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                    {index + 1}
-                  </div>
-
-                  {/* 아이콘 */}
-                  <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-500 drop-shadow-lg group-hover:drop-shadow-2xl">
-                    {food.emoji}
-                  </div>
-
-                  {/* 음식명 */}
-                  <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-orange-400 transition-all duration-300">
-                    {food.name}
-                  </h3>
-
-                  {/* 카테고리 */}
-                  <p className="text-orange-400 text-sm font-semibold mb-3">
-                    #{food.category}
-                  </p>
-
-                  {/* 설명 */}
-                  <p className="text-gray-400 text-sm mb-4 leading-relaxed">
-                    {food.description}
-                  </p>
-
-                  {/* 평점 */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-600">
-                    <span className="text-yellow-400 font-semibold">{food.rating}</span>
-                    <button className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/50 hover:scale-105">
-                      저장
-                    </button>
-                  </div>
+            {recommendedFood && (
+              <div className="mt-12 bg-gradient-to-br from-amber-900/20 via-orange-900/20 to-rose-900/20 backdrop-blur-xl border-2 border-amber-500/50 rounded-3xl p-12 text-center shadow-2xl animate-fade-in">
+                <div className="inline-block animate-shake-pause">
+                  <div className="text-9xl mb-8 drop-shadow-2xl">{recommendedFood.emoji || '🍽️'}</div>
                 </div>
-              ))}
-            </div>
-            </div>
-          )}
+                <div className="inline-block mb-6">
+                  <h3 className="text-4xl font-extrabold bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent">
+                    오늘의 추천 메뉴
+                  </h3>
+                  <div className="h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 rounded-full mt-2"></div>
+                </div>
+                <h2 className="text-6xl font-black text-white mb-4 tracking-tight drop-shadow-lg">{recommendedFood.foodName}</h2>
+                <p className="text-gray-400 text-lg">맛있게 드세요! 😋</p>
+              </div>
+            )}
 
-          {/* 빈 상태 메시지 */}
-          {currentRecommendation.recommendedFoods.length === 0 && !errorMessage && (
-            <div className="text-center py-16">
-              <div className="text-6xl mb-4">😋</div>
-              <p className="text-xl text-gray-400 mb-4">
-                아직 추천을 받지 않았어요
-              </p>
-              <p className="text-gray-500">
-                위에서 원하는 종류를 선택하고 "추천받기" 버튼을 눌러주세요!
-              </p>
-            </div>
-          )}
-        </div>
+            {/* 음식 상세 정보 모달 */}
+            {selectedFood && (
+              <div
+                className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+                onClick={() => setSelectedFood(null)}
+              >
+                <div
+                  className="bg-gray-800 border border-gray-700 rounded-lg p-8 max-w-md w-full"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="text-6xl mb-4 text-center">{selectedFood.emoji || '🍽️'}</div>
+                  <h2 className="text-2xl font-bold text-white mb-4">{selectedFood.name}</h2>
+                  
+                  <div className="space-y-2 mb-6">
+                    {selectedFood.code && (
+                      <p className="text-sm text-gray-400">
+                        <span className="text-gray-500">코드:</span> {selectedFood.code}
+                      </p>
+                    )}
+                    {selectedFood.category1 && (
+                      <p className="text-sm text-gray-400">
+                        <span className="text-gray-500">카테고리:</span> {selectedFood.category1}
+                      </p>
+                    )}
+                    {selectedFood.category2 && (
+                      <p className="text-sm text-gray-400">
+                        <span className="text-gray-500">세부:</span> {selectedFood.category2}
+                      </p>
+                    )}
+                  </div>
 
-        {/* 하단 CTA */}
-        <div className="mt-16 text-center">
-          <div className="inline-block rounded-2xl bg-gradient-to-r from-orange-500/10 to-red-500/10 backdrop-blur-sm p-8 border border-orange-500/30 shadow-xl">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent mb-2">음식 추천이 마음에 들었나요?</h2>
-            <p className="text-gray-300 mb-4">친구들과 함께 추천 음식을 공유하고 함께 즐겨보세요!</p>
-            <button className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/50">
-              공유하기 🔗
-            </button>
-          </div>
-        </div>
+                  <button
+                    onClick={() => setSelectedFood(null)}
+                    className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

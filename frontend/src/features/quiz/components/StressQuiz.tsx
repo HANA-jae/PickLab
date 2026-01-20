@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import TestLayout from './TestLayout';
+import QuizLayout from './QuizLayout';
 
-interface StressTestProps {
+interface StressQuizProps {
   onBack: () => void;
 }
 
-export default function StressTest({ onBack }: StressTestProps) {
+export default function StressQuiz({ onBack }: StressQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState<number[]>([]);
 
@@ -38,7 +38,7 @@ export default function StressTest({ onBack }: StressTestProps) {
   const stressLevel = scores.length === questions.length ? getStressLevel() : null;
 
   return (
-    <TestLayout
+    <QuizLayout
       onBack={onBack}
       title="스트레스 지수 테스트"
       emoji="😰"
@@ -94,6 +94,6 @@ export default function StressTest({ onBack }: StressTestProps) {
           </button>
         </div>
       )}
-    </TestLayout>
+    </QuizLayout>
   );
 }

@@ -1,521 +1,355 @@
-import { useState, useEffect, useRef } from 'react';
-import * as XLSX from 'xlsx';
-import type { TabType, FoodItem } from '../../../types';
-import { useMenuProperties } from '../../../hooks/useMenuProperties';
+import { useState, useEffect } from 'react';
+import { contentsApi } from '../../../services/api';
+import { Content } from '../../../types';
 
 export default function AdminPage() {
-  const { properties, addFood, updateFood, deleteFood, setTabMenus } = useMenuProperties();
-  const [foods, setFoods] = useState<FoodItem[]>([]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingFood, setEditingFood] = useState<FoodItem | null>(null);
-  const [filterTab, setFilterTab] = useState<TabType | 'all'>('all');
-  const [uploadTab, setUploadTab] = useState<TabType>('lunch');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const [formData, setFormData] = useState<Partial<FoodItem>>({
-    name: '',
-    description: '',
-    emoji: '',
-    rating: '⭐ 4.0',
-    category: '',
-    subCategory: '',
-    taste: '',
-    priceRange: '',
-    feature: '',
-    tab: 'lunch',
-  });
+  const [activeTab, setActiveTab] = useState<'food' | 'game' | 'quiz'>('food');
+  const [contents, setContents] = useState<Content[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<Partial<Content>>({});
 
-  // 프로퍼티로부터 전체 음식 불러오기 (탭 합치기)
+  // 탭별 데이터 로드
   useEffect(() => {
-    const merged = [
-      ...properties.menus.lunch,
-      ...properties.menus.dinner,
-      ...properties.menus.recipe,
-    ];
-    setFoods(merged);
-  }, [properties.updatedAt]);
+    loadContents(activeTab);
+    setSelectedIds(new Set());
+    setEditingId(null);
+  }, [activeTab]);
 
-  // 음식 추가
-  const handleAddFood = () => {
-    if (!formData.name || !formData.category || !formData.tab) {
-      alert('필수 항목을 모두 입력해주세요!');
+  const loadContents = async (type: 'food' | 'game' | 'quiz') => {
+    setLoading(true);
+    try {
+      const response = await contentsApi.getContents(type);
+      const sorted = (response as Content[]).sort((a, b) => (a.order || 0) - (b.order || 0));
+      setContents(sorted);
+    } catch (error) {
+      console.error(`Failed to load ${type}:`, error);
+      alert(`${type} 데이터 로드 실패`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(contents.map(c => c.code)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectRow = (code: string, checked: boolean) => {
+    const newIds = new Set(selectedIds);
+    if (checked) {
+      newIds.add(code);
+    } else {
+      newIds.delete(code);
+    }
+    setSelectedIds(newIds);
+  };
+
+  const handleStatusToggle = async (code: string) => {
+    try {
+      await contentsApi.toggleStatus(code);
+      await loadContents(activeTab);
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+      alert('상태 변경 실패');
+    }
+  };
+
+  const handleDelete = async (code: string) => {
+    if (!confirm(`정말 ${code}을(를) 삭제하시겠습니까?`)) return;
+
+    try {
+      if (activeTab === 'food') await contentsApi.deleteFood(code);
+      else if (activeTab === 'game') await contentsApi.deleteGame(code);
+      else await contentsApi.deleteQuiz(code);
+
+      await loadContents(activeTab);
+      alert('삭제되었습니다');
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      alert('삭제 실패');
+    }
+  };
+
+  const handleEditStart = (content: Content) => {
+    setEditingId(content.code);
+    setEditData({ ...content });
+  };
+
+  const handleEditSave = async () => {
+    if (!editingId) return;
+
+    try {
+      if (activeTab === 'food') await contentsApi.updateFood(editingId, editData);
+      else if (activeTab === 'game') await contentsApi.updateGame(editingId, editData);
+      else await contentsApi.updateQuiz(editingId, editData);
+
+      setEditingId(null);
+      setEditData({});
+      await loadContents(activeTab);
+      alert('저장되었습니다');
+    } catch (error) {
+      console.error('Failed to save:', error);
+      alert('저장 실패');
+    }
+  };
+
+  const handleBatchSave = async () => {
+    if (selectedIds.size === 0) {
+      alert('저장할 항목을 선택해주세요');
       return;
     }
 
-    const newFood: FoodItem = {
-      id: Date.now(),
-      name: formData.name!,
-      description: formData.description || '',
-      emoji: formData.emoji || '🍽️',
-      rating: formData.rating || '⭐ 4.0',
-      category: formData.category!,
-      subCategory: formData.subCategory || '',
-      taste: formData.taste || '',
-      priceRange: formData.priceRange || '',
-      feature: formData.feature || '',
-      tab: formData.tab!,
-    };
-
-    addFood(newFood.tab as TabType, newFood);
-    setFoods((prev) => [...prev, newFood]);
-    resetForm();
-    setIsFormOpen(false);
-  };
-
-  // 음식 수정
-  const handleUpdateFood = () => {
-    if (!editingFood || !formData.name || !formData.category) {
-      alert('필수 항목을 모두 입력해주세요!');
+    if (selectedIds.size > 100) {
+      alert('한 번에 최대 100개까지만 저장 가능합니다');
       return;
     }
 
-    const updated: FoodItem = {
-      ...(editingFood as FoodItem),
-      ...formData,
-    } as FoodItem;
-    updateFood(updated.tab as TabType, updated.id, updated);
-    setFoods((prev) => prev.map((f) => (f.id === updated.id ? updated : f)));
-    resetForm();
-    setEditingFood(null);
-    setIsFormOpen(false);
-  };
+    try {
+      const itemsToSave = contents
+        .filter(c => selectedIds.has(c.code))
+        .map(row => ({
+          ...row,
+          contentType: activeTab
+        }));
 
-  // 음식 삭제
-  const handleDeleteFood = (id: number) => {
-    if (confirm('정말 이 음식을 삭제하시겠습니까?')) {
-      const target = foods.find((f) => f.id === id);
-      if (target && target.tab) {
-        deleteFood(target.tab as TabType, id);
-      }
-      setFoods((prev) => prev.filter((f) => f.id !== id));
+      await contentsApi.batchUpsert(itemsToSave);
+      alert('일괄 저장되었습니다');
+      await loadContents(activeTab);
+      setSelectedIds(new Set());
+    } catch (error) {
+      console.error('Failed to batch save:', error);
+      alert('일괄 저장 실패');
     }
-  };
-
-  // 수정 모드 시작
-  const handleEditFood = (food: FoodItem) => {
-    setEditingFood(food);
-    setFormData(food);
-    setIsFormOpen(true);
-  };
-
-  // 폼 초기화
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      emoji: '',
-      rating: '⭐ 4.0',
-      category: '',
-      subCategory: '',
-      taste: '',
-      priceRange: '',
-      feature: '',
-      tab: 'lunch',
-    });
-    setEditingFood(null);
-  };
-
-  // 필터링된 음식 목록
-  const filteredFoods = filterTab === 'all'
-    ? foods
-    : foods.filter((food) => food.tab === filterTab);
-
-  // 엑셀 파일 업로드 처리
-  const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-
-        // 첫 번째 행은 헤더로 간주하고 건너뛰기
-        const dataRows = jsonData.slice(1);
-        
-        const newFoods: FoodItem[] = dataRows
-          .filter(row => row[0]) // 메뉴명이 있는 행만 처리
-          .map((row) => ({
-            id: Date.now() + Math.random(), // 고유 ID 생성
-            name: String(row[0] || '').trim(), // 1열: 메뉴명
-            category: String(row[1] || '').trim(), // 2열: 카테고리
-            subCategory: String(row[2] || '').trim(), // 3열: 세부 카테고리
-            taste: String(row[3] || '').trim(), // 4열: 맛
-            priceRange: String(row[4] || '').trim(), // 5열: 가격대
-            feature: String(row[5] || '').trim(), // 6열: 특징
-            emoji: '🍽️', // 기본 이모지
-            rating: '⭐ 4.0', // 기본 평점
-            description: '', // 기본 설명
-            tab: uploadTab, // 선택한 탭
-          }));
-
-        if (newFoods.length === 0) {
-          alert('업로드할 데이터가 없습니다. 엑셀 파일을 확인해주세요.');
-          return;
-        }
-
-        // 해당 탭에 일괄 추가 (프로퍼티)
-        setTabMenus(uploadTab, [...properties.menus[uploadTab], ...newFoods]);
-        setFoods((prev) => [...prev, ...newFoods]);
-        alert(`${newFoods.length}개의 음식이 추가되었습니다!`);
-        
-        // 파일 입력 초기화
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      } catch (error) {
-        console.error('Excel upload error:', error);
-        alert('엑셀 파일을 읽는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
-      }
-    };
-
-    reader.readAsArrayBuffer(file);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-800 to-gray-950 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-800 to-gray-950 py-12 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* 헤더 */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
-            🔧 관리자 페이지
-          </h1>
-          <p className="text-xl text-gray-300">음식 메뉴를 추가하고 관리하세요</p>
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent mb-8">
+          🔧 관리자 패널
+        </h1>
+
+        {/* 탭 네비게이션 */}
+        <div className="flex gap-4 mb-6 border-b border-gray-700">
+          {(['food', 'game', 'quiz'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-3 font-semibold transition-all ${
+                activeTab === tab
+                  ? 'text-blue-400 border-b-2 border-blue-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              {tab === 'food' && '🍔 음식'}
+              {tab === 'game' && '🎮 게임'}
+              {tab === 'quiz' && '📝 퀴즈'}
+            </button>
+          ))}
         </div>
 
         {/* 액션 버튼 */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="flex gap-4 mb-6">
           <button
-            onClick={() => {
-              resetForm();
-              setIsFormOpen(true);
-            }}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-xl shadow-blue-500/30"
+            onClick={handleBatchSave}
+            disabled={selectedIds.size === 0 || loading}
+            className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-bold rounded-lg transition-all"
           >
-            + 새 음식 추가
+            일괄 저장 ({selectedIds.size})
           </button>
-
-          {/* 탭 필터 */}
-          <div className="flex gap-2">
-            {['all', 'lunch', 'dinner', 'recipe'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setFilterTab(tab as TabType | 'all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                  filterTab === tab
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
-                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                }`}
-              >
-                {tab === 'all' ? '전체' : tab === 'lunch' ? '점심' : tab === 'dinner' ? '저녁' : '요리'}
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => loadContents(activeTab)}
+            disabled={loading}
+            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-700 text-white font-bold rounded-lg transition-all"
+          >
+            새로고침
+          </button>
         </div>
 
-        {/* 엑셀 업로드 섹션 */}
-        <div className="mb-8 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-teal-500/10 backdrop-blur-md rounded-2xl p-6 border border-green-500/30 shadow-xl">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                📊 엑셀 파일로 일괄 업로드
-              </h3>
-              <p className="text-sm text-gray-300 mb-2">
-                엑셀 파일의 6개 컬럼을 사용합니다:
-              </p>
-              <div className="text-xs text-gray-400 space-y-1">
-                <p>• <span className="font-semibold text-green-300">1열</span>: 메뉴명</p>
-                <p>• <span className="font-semibold text-green-300">2열</span>: 카테고리 (한식, 양식 등)</p>
-                <p>• <span className="font-semibold text-green-300">3열</span>: 세부 카테고리 (국/찌개, 밥 등)</p>
-                <p>• <span className="font-semibold text-green-300">4열</span>: 맛 (순한맛, 매운맛 등)</p>
-                <p>• <span className="font-semibold text-green-300">5열</span>: 가격대 (저가, 중가, 고가)</p>
-                <p>• <span className="font-semibold text-green-300">6열</span>: 특징 (빠르게, 건강식 등)</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 w-full md:w-auto">
-              {/* 탭 선택 */}
-              <div className="flex gap-2">
-                {['lunch', 'dinner', 'recipe'].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setUploadTab(tab as TabType)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${
-                      uploadTab === tab
-                        ? 'bg-green-500 text-white shadow-lg'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    {tab === 'lunch' ? '점심' : tab === 'dinner' ? '저녁' : '요리'}
-                  </button>
-                ))}
-              </div>
-
-              {/* 파일 업로드 버튼 */}
-              <label className="cursor-pointer">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".xlsx, .xls"
-                  onChange={handleExcelUpload}
-                  className="hidden"
-                />
-                <div className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg text-center">
-                  📁 엑셀 파일 선택
-                </div>
-              </label>
-            </div>
+        {/* 테이블 */}
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-gray-400">로딩 중...</p>
           </div>
-        </div>
-
-        {/* 음식 추가/수정 폼 */}
-        {isFormOpen && (
-          <div className="mb-8 bg-gradient-to-br from-gray-800/90 via-gray-800/80 to-gray-700/90 backdrop-blur-md rounded-2xl p-8 border border-gray-600/50 shadow-2xl">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              {editingFood ? '음식 수정' : '새 음식 추가'}
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* 탭 선택 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  탭 <span className="text-red-400">*</span>
-                </label>
-                <select
-                  value={formData.tab}
-                  onChange={(e) => setFormData({ ...formData, tab: e.target.value as TabType })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                >
-                  <option value="lunch">점심</option>
-                  <option value="dinner">저녁</option>
-                  <option value="recipe">요리</option>
-                </select>
-              </div>
-
-              {/* 음식 이름 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  음식 이름 <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                  placeholder="예: 김치찌개"
-                />
-              </div>
-
-              {/* 이모지 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  이모지
-                </label>
-                <input
-                  type="text"
-                  value={formData.emoji}
-                  onChange={(e) => setFormData({ ...formData, emoji: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                  placeholder="🍲"
-                />
-              </div>
-
-              {/* 평점 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  평점
-                </label>
-                <input
-                  type="text"
-                  value={formData.rating}
-                  onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                  placeholder="⭐ 4.5"
-                />
-              </div>
-
-              {/* 카테고리 (종류) */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  카테고리 (종류) <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                  placeholder="예: 한식, 양식, 중식"
-                />
-              </div>
-
-              {/* 세부 카테고리 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  세부 카테고리
-                </label>
-                <input
-                  type="text"
-                  value={formData.subCategory}
-                  onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                  placeholder="예: 국/찌개, 밥"
-                />
-              </div>
-
-              {/* 맛 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  맛
-                </label>
-                <input
-                  type="text"
-                  value={formData.taste}
-                  onChange={(e) => setFormData({ ...formData, taste: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                  placeholder="예: 순한맛, 매운맛"
-                />
-              </div>
-
-              {/* 가격대 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  가격대
-                </label>
-                <input
-                  type="text"
-                  value={formData.priceRange}
-                  onChange={(e) => setFormData({ ...formData, priceRange: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                  placeholder="예: 저가, 중가, 고가"
-                />
-              </div>
-
-              {/* 특징 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  특징
-                </label>
-                <input
-                  type="text"
-                  value={formData.feature}
-                  onChange={(e) => setFormData({ ...formData, feature: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                  placeholder="예: 빠르게, 건강식"
-                />
-              </div>
-
-              {/* 설명 (전체 너비) */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  설명
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-400"
-                  rows={3}
-                  placeholder="음식에 대한 설명을 입력하세요"
-                />
-              </div>
-            </div>
-
-            {/* 폼 액션 버튼 */}
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={editingFood ? handleUpdateFood : handleAddFood}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
-              >
-                {editingFood ? '수정하기' : '추가하기'}
-              </button>
-              <button
-                onClick={() => {
-                  resetForm();
-                  setIsFormOpen(false);
-                }}
-                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all duration-300"
-              >
-                취소
-              </button>
+        ) : (
+          <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-900 border-b border-gray-700">
+                    <th className="px-4 py-3 text-left">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.size === contents.length && contents.length > 0}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                    </th>
+                    <th className="px-4 py-3 text-left text-gray-300">코드</th>
+                    <th className="px-4 py-3 text-left text-gray-300">이름</th>
+                    <th className="px-4 py-3 text-left text-gray-300">이모지</th>
+                    {activeTab === 'food' && (
+                      <>
+                        <th className="px-4 py-3 text-left text-gray-300">카테고리1</th>
+                        <th className="px-4 py-3 text-left text-gray-300">카테고리2</th>
+                      </>
+                    )}
+                    <th className="px-4 py-3 text-left text-gray-300">사용여부</th>
+                    <th className="px-4 py-3 text-left text-gray-300">순서</th>
+                    <th className="px-4 py-3 text-left text-gray-300">작업</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contents.length > 0 ? (
+                    contents.map((content) => (
+                      <tr key={content.code} className="border-b border-gray-700 hover:bg-gray-700/50">
+                        <td className="px-4 py-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(content.code)}
+                            onChange={(e) => handleSelectRow(content.code, e.target.checked)}
+                            className="w-4 h-4 cursor-pointer"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-gray-300 font-mono text-sm">{content.code}</td>
+                        <td className="px-4 py-3">
+                          {editingId === content.code ? (
+                            <input
+                              type="text"
+                              value={editData.name || ''}
+                              onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                              className="px-2 py-1 bg-gray-700 text-white border border-gray-600 rounded w-full"
+                            />
+                          ) : (
+                            <span className="text-gray-300">{content.name}</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {editingId === content.code ? (
+                            <input
+                              type="text"
+                              value={editData.emoji || ''}
+                              onChange={(e) => setEditData({ ...editData, emoji: e.target.value })}
+                              className="px-2 py-1 bg-gray-700 text-white border border-gray-600 rounded w-full"
+                              maxLength={2}
+                            />
+                          ) : (
+                            <span className="text-2xl">{content.emoji || '-'}</span>
+                          )}
+                        </td>
+                        {activeTab === 'food' && (
+                          <>
+                            <td className="px-4 py-3 text-sm text-gray-400">{content.category1 || '-'}</td>
+                            <td className="px-4 py-3 text-sm text-gray-400">{content.category2 || '-'}</td>
+                          </>
+                        )}
+                        <td className="px-4 py-3">
+                          {editingId === content.code ? (
+                            <select
+                              value={editData.useYn || 'Y'}
+                              onChange={(e) => setEditData({ ...editData, useYn: e.target.value })}
+                              className="px-2 py-1 bg-gray-700 text-white border border-gray-600 rounded"
+                            >
+                              <option value="Y">사용</option>
+                              <option value="N">미사용</option>
+                            </select>
+                          ) : (
+                            <span className={content.useYn === 'Y' ? 'text-green-400' : 'text-red-400'}>
+                              {content.useYn}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {editingId === content.code ? (
+                            <input
+                              type="number"
+                              value={editData.order || 0}
+                              onChange={(e) => setEditData({ ...editData, order: parseInt(e.target.value) })}
+                              className="px-2 py-1 bg-gray-700 text-white border border-gray-600 rounded w-16"
+                            />
+                          ) : (
+                            <span className="text-gray-400">{content.order || '-'}</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-2">
+                            {editingId === content.code ? (
+                              <>
+                                <button
+                                  onClick={handleEditSave}
+                                  className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded"
+                                >
+                                  저장
+                                </button>
+                                <button
+                                  onClick={() => setEditingId(null)}
+                                  className="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded"
+                                >
+                                  취소
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => handleEditStart(content)}
+                                  className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
+                                >
+                                  수정
+                                </button>
+                                <button
+                                  onClick={() => handleStatusToggle(content.code)}
+                                  className="px-2 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-sm rounded"
+                                >
+                                  토글
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(content.code)}
+                                  className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded"
+                                >
+                                  삭제
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={10} className="px-4 py-8 text-center text-gray-400">
+                        데이터가 없습니다
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {/* 음식 목록 */}
-        <div className="bg-gradient-to-br from-gray-800/90 via-gray-800/80 to-gray-700/90 backdrop-blur-md rounded-2xl p-8 border border-gray-600/50 shadow-2xl">
-          <h2 className="text-2xl font-bold text-white mb-6">
-            등록된 음식 ({filteredFoods.length}개)
-          </h2>
-
-          {filteredFoods.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-400 text-lg">등록된 음식이 없습니다.</p>
-              <p className="text-gray-500 mt-2">새 음식을 추가해주세요!</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-600">
-                    <th className="text-left py-3 px-4 text-gray-300 font-semibold">이모지</th>
-                    <th className="text-left py-3 px-4 text-gray-300 font-semibold">이름</th>
-                    <th className="text-left py-3 px-4 text-gray-300 font-semibold">탭</th>
-                    <th className="text-left py-3 px-4 text-gray-300 font-semibold">카테고리</th>
-                    <th className="text-left py-3 px-4 text-gray-300 font-semibold">평점</th>
-                    <th className="text-left py-3 px-4 text-gray-300 font-semibold">액션</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredFoods.map((food) => (
-                    <tr key={food.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors">
-                      <td className="py-3 px-4 text-2xl">{food.emoji}</td>
-                      <td className="py-3 px-4 text-white font-medium">{food.name}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          food.tab === 'lunch' ? 'bg-blue-500/20 text-blue-300' :
-                          food.tab === 'dinner' ? 'bg-purple-500/20 text-purple-300' :
-                          'bg-green-500/20 text-green-300'
-                        }`}>
-                          {food.tab === 'lunch' ? '점심' : food.tab === 'dinner' ? '저녁' : '요리'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-300">{food.category}</td>
-                      <td className="py-3 px-4 text-yellow-400">{food.rating}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditFood(food)}
-                            className="px-3 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg text-sm font-medium transition-all"
-                          >
-                            수정
-                          </button>
-                          <button
-                            onClick={() => handleDeleteFood(food.id)}
-                            className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm font-medium transition-all"
-                          >
-                            삭제
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* 도움말 */}
-        <div className="mt-8 bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 backdrop-blur-sm">
-          <h3 className="text-lg font-semibold text-blue-300 mb-2">💡 사용 방법</h3>
-          <ul className="text-gray-300 space-y-1 text-sm">
-            <li>• 관리자가 추가한 음식은 자동으로 사용자 페이지에 반영됩니다</li>
-            <li>• 카테고리는 EatHome의 선택지와 일치해야 추천에 포함됩니다</li>
-            <li>• 데이터는 브라우저의 localStorage에 저장됩니다</li>
-          </ul>
+        {/* 통계 */}
+        <div className="mt-8 grid grid-cols-3 gap-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <p className="text-gray-400 text-sm">총 항목 수</p>
+            <p className="text-3xl font-bold text-blue-400">{contents.length}</p>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <p className="text-gray-400 text-sm">사용 중인 항목</p>
+            <p className="text-3xl font-bold text-green-400">
+              {contents.filter(c => c.useYn === 'Y').length}
+            </p>
+          </div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <p className="text-gray-400 text-sm">미사용 항목</p>
+            <p className="text-3xl font-bold text-red-400">
+              {contents.filter(c => c.useYn === 'N').length}
+            </p>
+          </div>
         </div>
       </div>
     </div>

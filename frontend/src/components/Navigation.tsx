@@ -7,7 +7,7 @@ export default function Navigation() {
     { path: '/', label: '🏠 홈', active: location.pathname === '/' },
     { path: '/eat', label: '🍔 음식', active: location.pathname === '/eat' },
     { path: '/game', label: '🎮 게임', active: location.pathname === '/game' },
-    { path: '/test', label: '📝 테스트', active: location.pathname === '/test' },
+    { path: '/quiz', label: '📝 퀴즈', active: location.pathname === '/quiz' },
     { path: '/admin', label: '🔧 관리자', active: location.pathname === '/admin' },
   ];
 

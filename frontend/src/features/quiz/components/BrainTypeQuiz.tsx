@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import TestLayout from './TestLayout';
+import QuizLayout from './QuizLayout';
 
-interface BrainTypeTestProps {
+interface BrainTypeQuizProps {
   onBack: () => void;
 }
 
-export default function BrainTypeTest({ onBack }: BrainTypeTestProps) {
+export default function BrainTypeQuiz({ onBack }: BrainTypeQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [leftScore, setLeftScore] = useState(0);
   const [rightScore, setRightScore] = useState(0);
@@ -49,7 +49,7 @@ export default function BrainTypeTest({ onBack }: BrainTypeTestProps) {
   const brainType = leftScore > rightScore ? '좌뇌' : rightScore > leftScore ? '우뇌' : '균형';
 
   return (
-    <TestLayout
+    <QuizLayout
       onBack={onBack}
       title="뇌 유형 테스트"
       emoji="🧬"
@@ -101,6 +101,6 @@ export default function BrainTypeTest({ onBack }: BrainTypeTestProps) {
           </button>
         </div>
       )}
-    </TestLayout>
+    </QuizLayout>
   );
 }

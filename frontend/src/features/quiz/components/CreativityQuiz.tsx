@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import TestLayout from './TestLayout';
+import QuizLayout from './QuizLayout';
 
-interface CreativityTestProps {
+interface CreativityQuizProps {
   onBack: () => void;
 }
 
-export default function CreativityTest({ onBack }: CreativityTestProps) {
+export default function CreativityQuiz({ onBack }: CreativityQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
@@ -49,7 +49,7 @@ export default function CreativityTest({ onBack }: CreativityTestProps) {
   const isComplete = currentQuestion === questions.length - 1 && answered;
 
   return (
-    <TestLayout
+    <QuizLayout
       onBack={onBack}
       title="창의성 테스트"
       emoji="💡"
@@ -109,6 +109,6 @@ export default function CreativityTest({ onBack }: CreativityTestProps) {
           </button>
         </div>
       )}
-    </TestLayout>
+    </QuizLayout>
   );
 }

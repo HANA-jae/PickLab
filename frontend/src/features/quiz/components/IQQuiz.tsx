@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import TestLayout from './TestLayout';
+import QuizLayout from './QuizLayout';
 
-interface IQTestProps {
+interface IQQuizProps {
   onBack: () => void;
 }
 
-export default function IQTest({ onBack }: IQTestProps) {
+export default function IQQuiz({ onBack }: IQQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
@@ -57,16 +57,16 @@ export default function IQTest({ onBack }: IQTestProps) {
     }
   };
 
-  const isTestComplete = currentQuestion === questions.length - 1 && answered;
+  const isQuizComplete = currentQuestion === questions.length - 1 && answered;
 
   return (
-    <TestLayout
+    <QuizLayout
       onBack={onBack}
       title="IQ 테스트"
       emoji="🧪"
       description="논리력과 패턴 인식을 테스트합니다"
     >
-      {!isTestComplete ? (
+      {!isQuizComplete ? (
         <div className="space-y-6">
           <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
             <p className="text-gray-300 text-sm mb-1">문제 {currentQuestion + 1}/{questions.length}</p>
@@ -133,6 +133,6 @@ export default function IQTest({ onBack }: IQTestProps) {
           </button>
         </div>
       )}
-    </TestLayout>
+    </QuizLayout>
   );
 }

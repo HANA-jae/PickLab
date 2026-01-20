@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import TestLayout from './TestLayout';
+import QuizLayout from './QuizLayout';
 
-interface PersonalityTestProps {
+interface PersonalityQuizProps {
   onBack: () => void;
 }
 
-export default function PersonalityTest({ onBack }: PersonalityTestProps) {
+export default function PersonalityQuiz({ onBack }: PersonalityQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState({ E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 });
   const [completed, setCompleted] = useState(false);
@@ -63,7 +63,7 @@ export default function PersonalityTest({ onBack }: PersonalityTestProps) {
   };
 
   return (
-    <TestLayout
+    <QuizLayout
       onBack={onBack}
       title="성격 유형 테스트"
       emoji="🧠"
@@ -131,6 +131,6 @@ export default function PersonalityTest({ onBack }: PersonalityTestProps) {
           </button>
         </div>
       )}
-    </TestLayout>
+    </QuizLayout>
   );
 }

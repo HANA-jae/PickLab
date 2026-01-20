@@ -1,4 +1,4 @@
-interface TestLayoutProps {
+interface QuizLayoutProps {
   onBack: () => void;
   title: string;
   emoji: string;
@@ -6,7 +6,7 @@ interface TestLayoutProps {
   children: React.ReactNode;
 }
 
-export default function TestLayout({ onBack, title, emoji, description, children }: TestLayoutProps) {
+export default function QuizLayout({ onBack, title, emoji, description, children }: QuizLayoutProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 py-12 px-4">
       <div className="max-w-2xl mx-auto">

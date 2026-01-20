@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import TestLayout from './TestLayout';
+import QuizLayout from './QuizLayout';
 
-interface ColorEmotionTestProps {
+interface ColorEmotionQuizProps {
   onBack: () => void;
 }
 
-export default function ColorEmotionTest({ onBack }: ColorEmotionTestProps) {
+export default function ColorEmotionQuiz({ onBack }: ColorEmotionQuizProps) {
   const colorEmotions = [
     { color: 'bg-red-500', name: '빨강', emotion: '열정적이고 에너지 있는' },
     { color: 'bg-blue-500', name: '파랑', emotion: '차분하고 신뢰할 수 있는' },
@@ -17,7 +17,7 @@ export default function ColorEmotionTest({ onBack }: ColorEmotionTestProps) {
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
-    <TestLayout
+    <QuizLayout
       onBack={onBack}
       title="색상 감정 테스트"
       emoji="🎨"
@@ -51,6 +51,6 @@ export default function ColorEmotionTest({ onBack }: ColorEmotionTestProps) {
           </p>
         </div>
       )}
-    </TestLayout>
+    </QuizLayout>
   );
 }

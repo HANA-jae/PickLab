@@ -4,13 +4,13 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 3003;
 
   // CORS 설정 (프론트엔드 요청 허용)
   app.enableCors({
     origin: process.env.NODE_ENV === 'production' 
       ? 'https://yourdomain.com' 
-      : ['http://localhost:5173', 'http://localhost:3000'],
+      : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
     credentials: true,
   });
 

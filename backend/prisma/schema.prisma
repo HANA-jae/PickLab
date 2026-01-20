@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 음식 메뉴 (F001~F999)
+model Food {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // F001, F002, ...
+  name        String
+  description String?
+  emoji       String
+  category    String   // 한식, 양식, 중식, 일식 등
+  subCategory String   // 국/찌개, 밥, 면 등
+  taste       String   // 순한맛, 매운맛, 단맛 등
+  priceRange  String   // 저가, 중가, 고가
+  feature     String   // 빠르게, 건강식, 든든하게 등
+  tab         String   // lunch, dinner, recipe
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, order])
+  @@index([tab])
+}
+
+// 게임 (G001~G999)
+model Game {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // G001, G002, ...
+  name        String
+  description String
+  emoji       String
+  category    String   // 두뇌게임, 반응속도, 기억력 등
+  difficulty  String?  // 쉬움, 보통, 어려움
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, order])
+  @@index([category])
+}
+
+// 퀴즈 (Q001~Q999)
+model Quiz {
+  id            Int      @id @default(autoincrement())
+  code          String   @unique // Q001, Q002, ...
+  name          String
+  description   String
+  emoji         String
+  category      String   // 성격, 지능, 감정, 지식
+  questionCount Int      @default(5)
+  estimatedTime Int      @default(5) // 분 단위
+  difficulty    String?  // 쉬움, 보통, 어려움
+  isActive      Boolean  @default(true)
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([isActive, order])
+  @@index([category])
+}
+
+// 감사 로그 (6개월 보존)
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  code        String   // F001, G001, Q001 등
+  contentType String   // Food, Game, Quiz
+  action      String   // CREATE, UPDATE, DELETE, TOGGLE
+  oldValue    Json?    // 변경 전 데이터
+  newValue    Json?    // 변경 후 데이터
+  adminName   String   @default("Anonymous") // 추후 로그인 연동
+  ipAddress   String
+  userAgent   String?
+  timestamp   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([code])
+  @@index([contentType])
+  @@index([createdAt])
+}
