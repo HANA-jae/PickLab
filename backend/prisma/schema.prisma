@@ -8,62 +8,62 @@ datasource db {
 
 // 음식 메뉴 (F001~F999)
 model Food {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique // F001, F002, ...
-  name        String
-  description String?
-  emoji       String
-  category    String   // 한식, 양식, 중식, 일식 등
-  subCategory String   // 국/찌개, 밥, 면 등
-  taste       String   // 순한맛, 매운맛, 단맛 등
-  priceRange  String   // 저가, 중가, 고가
-  feature     String   // 빠르게, 건강식, 든든하게 등
-  tab         String   // lunch, dinner, recipe
-  isActive    Boolean  @default(true)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          Int       @id @default(autoincrement())
+  foodCode    String    @unique @map("food_code")
+  foodName    String    @map("food_name")
+  foodEmoji   String    @map("food_emoji")
+  category1   String?   @map("category1")
+  category2   String?   @map("category2")
+  category3   String?   @map("category3")
+  category4   String?   @map("category4")
+  category5   String?   @map("category5")
+  useYn       String    @default("Y") @map("use_yn")
+  createdUser String?   @map("created_user")
+  createdDate DateTime? @default(now()) @map("created_date")
+  updatedUser String?   @map("updated_user")
+  updatedDate DateTime? @map("updated_date")
 
-  @@index([isActive, order])
-  @@index([tab])
+  @@map("tbl_food_info")
+  @@index([useYn])
+  @@index([foodCode])
 }
 
 // 게임 (G001~G999)
 model Game {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique // G001, G002, ...
-  name        String
-  description String
-  emoji       String
-  category    String   // 두뇌게임, 반응속도, 기억력 등
-  difficulty  String?  // 쉬움, 보통, 어려움
-  isActive    Boolean  @default(true)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int       @id @default(autoincrement())
+  gameCode      String    @unique @map("game_code")
+  gameName      String    @map("game_name")
+  gameDesc      String?   @map("game_desc")
+  gameEmoji     String    @map("game_emoji")
+  gameDifficult String?   @map("game_difficult")
+  useYn         String    @default("Y") @map("use_yn")
+  createdUser   String?   @map("created_user")
+  createdDate   DateTime? @default(now()) @map("created_date")
+  updatedUser   String?   @map("updated_user")
+  updatedDate   DateTime? @map("updated_date")
 
-  @@index([isActive, order])
-  @@index([category])
+  @@map("tbl_game_info")
+  @@index([useYn])
+  @@index([gameCode])
 }
 
 // 퀴즈 (Q001~Q999)
 model Quiz {
-  id            Int      @id @default(autoincrement())
-  code          String   @unique // Q001, Q002, ...
-  name          String
-  description   String
-  emoji         String
-  category      String   // 성격, 지능, 감정, 지식
-  questionCount Int      @default(5)
-  estimatedTime Int      @default(5) // 분 단위
-  difficulty    String?  // 쉬움, 보통, 어려움
-  isActive      Boolean  @default(true)
-  order         Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           Int       @id @default(autoincrement())
+  quizCode     String    @unique @map("quiz_code")
+  quizName     String    @map("quiz_name")
+  quizDesc     String?   @map("quiz_desc")
+  quizEmoji    String    @map("quiz_emoji")
+  quizCategory String?   @map("quiz_category")
+  useYn        String    @default("Y") @map("use_yn")
+  createdUser  String?   @map("created_user")
+  createdDate  DateTime? @default(now()) @map("created_date")
+  updatedUser  String?   @map("updated_user")
+  updatedDate  DateTime? @map("updated_date")
 
-  @@index([isActive, order])
-  @@index([category])
+  @@map("tbl_quiz_info")
+  @@index([useYn])
+  @@index([quizCode])
 }
 
 // 감사 로그 (6개월 보존)

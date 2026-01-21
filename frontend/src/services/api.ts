@@ -123,4 +123,18 @@ export const contentsApi = {
   getCommonCodes: (masterCode: string) => apiService.get(`/common-code/${masterCode}`),
   getCommonMaster: (masterCode: string) => apiService.get(`/common-code/master/${masterCode}`),
   getAllCommonMasters: () => apiService.get('/common-code'),
+  
+  // Common code management endpoints
+  createCommonMaster: (data: any) => apiService.post('/contents/common/masters', data),
+  updateCommonMaster: (seq: number, data: any) => apiService.patch(`/contents/common/masters/${seq}`, data),
+  deleteCommonMaster: (seq: number) => apiService.delete(`/contents/common/masters/${seq}`),
+  
+  createCommonDetail: (data: any) => apiService.post('/contents/common/details', data),
+  updateCommonDetail: (seq: number, data: any) => 
+    apiService.patch(`/contents/common/details/${seq}`, data),
+  deleteCommonDetail: (seq: number) => 
+    apiService.delete(`/contents/common/details/${seq}`),
+  
+  getCommonDetailsByMaster: (masterCode: string) => 
+    apiService.get(`/contents/common/details/${masterCode}`),
 };

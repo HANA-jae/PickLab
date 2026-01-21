@@ -48,15 +48,20 @@ export interface Quiz extends Content {
 }
 
 export interface CommonCode {
+  seq?: number;
+  tempId?: string;
   masterCode: string;
   detailCode: string;
   detailName: string;
-  detailOrder?: number;
+  sortNo?: number;
   useYn?: string;
 }
 
 export interface CommonMaster {
+  seq?: number;
+  tempId?: string;
   masterCode: string;
+  masterName?: string;
   masterDesc?: string;
   useYn?: string;
   sortNo?: number;

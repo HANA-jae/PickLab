@@ -178,4 +178,59 @@ export class ContentsController {
 
     return { processedCount: results.length, results };
   }
+
+  // Common Code Master endpoints
+  @Get('common/masters')
+  @ApiOperation({ summary: '모든 공통코드 마스터 조회' })
+  async getAllCommonMasters() {
+    return this.contentsService.getAllCommonMasters();
+  }
+
+  @Post('common/masters')
+  @ApiOperation({ summary: '공통코드 마스터 추가' })
+  async createCommonMaster(@Body() dto: any) {
+    return this.contentsService.createCommonMaster(dto);
+  }
+
+  @Patch('common/masters/:seq')
+  @ApiOperation({ summary: '공통코드 마스터 수정' })
+  async updateCommonMaster(@Param('seq') seq: string, @Body() dto: any) {
+    return this.contentsService.updateCommonMaster(parseInt(seq), dto);
+  }
+
+  @Delete('common/masters/:seq')
+  @ApiOperation({ summary: '공통코드 마스터 삭제' })
+  async deleteCommonMaster(@Param('seq') seq: string) {
+    return this.contentsService.deleteCommonMaster(parseInt(seq));
+  }
+
+  // Common Code Detail endpoints
+  @Get('common/details/:masterCode')
+  @ApiOperation({ summary: '특정 마스터의 상세 코드 조회' })
+  async getCommonCodesByMaster(@Param('masterCode') masterCode: string) {
+    return this.contentsService.getCommonCodesByMaster(masterCode);
+  }
+
+  @Post('common/details')
+  @ApiOperation({ summary: '공통코드 상세 추가' })
+  async createCommonDetail(@Body() dto: any) {
+    return this.contentsService.createCommonDetail(dto);
+  }
+
+  @Patch('common/details/:seq')
+  @ApiOperation({ summary: '공통코드 상세 수정' })
+  async updateCommonDetail(
+    @Param('seq') seq: string,
+    @Body() dto: any
+  ) {
+    return this.contentsService.updateCommonDetail(parseInt(seq), dto);
+  }
+
+  @Delete('common/details/:seq')
+  @ApiOperation({ summary: '공통코드 상세 삭제' })
+  async deleteCommonDetail(
+    @Param('seq') seq: string
+  ) {
+    return this.contentsService.deleteCommonDetail(parseInt(seq));
+  }
 }

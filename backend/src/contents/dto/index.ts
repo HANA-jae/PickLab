@@ -9,6 +9,7 @@ export class CreateFoodDto {
   category4?: string;
   category5?: string;
   use_yn?: string;
+  sort_no?: number;
   created_user?: string;
 }
 
@@ -21,6 +22,7 @@ export class UpdateFoodDto {
   category4?: string;
   category5?: string;
   use_yn?: string;
+  sort_no?: number;
   updated_user?: string;
 }
 
@@ -34,6 +36,7 @@ export class FoodResponseDto {
   category4?: string;
   category5?: string;
   use_yn: string;
+  sort_no?: number;
   created_date?: Date;
   created_user?: string;
   updated_date?: Date;
@@ -48,6 +51,7 @@ export class CreateGameDto {
   game_emoji?: string;
   game_difficult?: string;
   use_yn?: string;
+  sort_no?: number;
   created_user?: string;
 }
 
@@ -57,6 +61,7 @@ export class UpdateGameDto {
   game_emoji?: string;
   game_difficult?: string;
   use_yn?: string;
+  sort_no?: number;
   updated_user?: string;
 }
 
@@ -67,6 +72,7 @@ export class GameResponseDto {
   game_emoji?: string;
   game_difficult: string;
   use_yn: string;
+  sort_no?: number;
   created_date?: Date;
   created_user?: string;
   updated_date?: Date;
@@ -81,6 +87,7 @@ export class CreateQuizDto {
   quiz_emoji?: string;
   quiz_category?: string;
   use_yn?: string;
+  sort_no?: number;
   created_user?: string;
 }
 
@@ -90,6 +97,7 @@ export class UpdateQuizDto {
   quiz_emoji?: string;
   quiz_category?: string;
   use_yn?: string;
+  sort_no?: number;
   updated_user?: string;
 }
 
@@ -100,6 +108,7 @@ export class QuizResponseDto {
   quiz_emoji?: string;
   quiz_category?: string;
   use_yn: string;
+  sort_no?: number;
   created_date?: Date;
   created_user?: string;
   updated_date?: Date;
